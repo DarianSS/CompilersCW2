@@ -5,18 +5,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Iterator;
 
-import org.apache.bcel.classfile.ClassParser;
-import org.apache.bcel.classfile.Code;
-import org.apache.bcel.classfile.JavaClass;
-import org.apache.bcel.classfile.Method;
-import org.apache.bcel.generic.ClassGen;
-import org.apache.bcel.generic.ConstantPoolGen;
-import org.apache.bcel.generic.InstructionHandle;
-import org.apache.bcel.generic.InstructionList;
+import org.apache.bcel.classfile.*;
+import org.apache.bcel.generic.*;
+import org.apache.bcel.Repository;
 import org.apache.bcel.util.InstructionFinder;
-import org.apache.bcel.generic.MethodGen;
-import org.apache.bcel.generic.TargetLostException;
-
 
 
 public class ConstantFolder
@@ -44,6 +36,25 @@ public class ConstantFolder
 		ConstantPoolGen cpgen = cgen.getConstantPool();
 
 		// Implement your optimization here
+		
+		System.out.println("CONSTANTS:");
+		for (int i=0; i<cpgen.getSize(); i++) {
+			System.out.println(cpgen.getConstant(i));
+		}
+		
+		System.out.println("METHODS:");
+		Method[] methods = cgen.getMethods();
+		for (Method m : methods)
+		{
+			System.out.println(m);
+			Code methodCode = m.getCode();
+			InstructionList il = new InstructionList(methodCode.getCode());
+			
+			for (InstructionHandle handle : il.getInstructionHandles())
+			{
+				System.out.println(handle);
+			}
+		}
         
 		this.optimized = gen.getJavaClass();
 	}
