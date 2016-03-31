@@ -38,7 +38,8 @@ public class ConstantFolder
 		// Implement your optimization here
 		
 		System.out.println("CONSTANTS:");
-		for (int i=0; i<cpgen.getSize(); i++) {
+		for (int i=0; i<cpgen.getSize(); i++) 
+		{
 			System.out.println(cpgen.getConstant(i));
 		}
 		
@@ -47,12 +48,20 @@ public class ConstantFolder
 		for (Method m : methods)
 		{
 			System.out.println(m);
+			
 			Code methodCode = m.getCode();
 			InstructionList il = new InstructionList(methodCode.getCode());
 			
-			for (InstructionHandle handle : il.getInstructionHandles())
+			for (InstructionHandle handle : il.getInstructionHandles()) 
 			{
 				System.out.println(handle);
+				
+				if (handle.getInstruction() instanceof ArithmeticInstruction 
+				 && handle.getPrev().getInstruction() instanceof LDC
+				 && handle.getPrev().getPrev().getInstruction() instanceof LDC) 
+				{
+					System.out.println("Time to optimise!");
+				}
 			}
 		}
         
