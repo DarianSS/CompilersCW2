@@ -37,6 +37,8 @@ public class ConstantFolder
 
 		// Implement your optimization here
 		
+		Boolean optimised = false;
+		
 		System.out.println("CONSTANTS:");
 		for (int i=0; i<cpgen.getSize(); i++) 
 		{
@@ -45,22 +47,81 @@ public class ConstantFolder
 		
 		System.out.println("METHODS:");
 		Method[] methods = cgen.getMethods();
-		for (Method m : methods)
+		for (Method method : methods)
 		{
-			System.out.println(m);
+			System.out.println(method);
 			
-			Code methodCode = m.getCode();
+			Code methodCode = method.getCode();
 			InstructionList il = new InstructionList(methodCode.getCode());
+			MethodGen m = new MethodGen(method.getAccessFlags(), method.getReturnType(), method.getArgumentTypes(), null, method.getName(), cgen.getClassName(), il, cpgen);
+			il = m.getInstructionList();
 			
 			for (InstructionHandle handle : il.getInstructionHandles()) 
 			{
 				System.out.println(handle);
 				
-				if (handle.getInstruction() instanceof ArithmeticInstruction 
-				 && handle.getPrev().getInstruction() instanceof LDC
-				 && handle.getPrev().getPrev().getInstruction() instanceof LDC) 
+				if (handle.getInstruction() instanceof DADD
+				 || handle.getInstruction() instanceof FADD
+				 || handle.getInstruction() instanceof IADD
+				 || handle.getInstruction() instanceof LADD) 
+				{	
+					Instruction prev1 = handle.getPrev().getInstruction();
+					Instruction prev2 = handle.getPrev().getPrev().getInstruction();
+					
+					if (prev1 instanceof LDC && prev2 instanceof LDC) 
+					{	
+						System.out.println("Optimising an add operation.");
+						optimised = true;
+						LDC ldc1 = (LDC)prev1;
+						LDC ldc2 = (LDC)prev2;
+						double result = (int)ldc1.getValue(cpgen) + (int)ldc2.getValue(cpgen); // cast to double
+						int index = cpgen.addDouble(result);
+						LDC new_ldc = new LDC(index);
+						il.insert(handle, new_ldc);
+						try 
+						{
+							il.delete(prev1);
+							il.delete(prev2);
+							il.delete(handle);
+						} catch (TargetLostException e) 
+						{
+							e.printStackTrace();
+						}
+						
+						System.out.println(result);
+					}
+				}
+			}
+			
+			il.setPositions(true);
+			m.setMaxStack();
+			m.setMaxLocals();
+			Method newMethod = m.getMethod();
+			cgen.replaceMethod(method, newMethod);
+		}
+		
+		// Printing the new CP and methods
+		if (optimised) 
+		{
+			System.out.println("\nOPTIMISED:\n");
+			
+			System.out.println("CONSTANTS:");
+			for (int i=0; i<cpgen.getSize(); i++) 
+			{
+				System.out.println(cpgen.getConstant(i));
+			}
+			
+			System.out.println("METHDODS:");
+			{
+				for (Method method : cgen.getMethods()) 
 				{
-					System.out.println("Time to optimise!");
+					System.out.println(method);
+					Code methodCode = method.getCode();
+					InstructionList il = new InstructionList(methodCode.getCode());
+					for (InstructionHandle handle : il.getInstructionHandles()) 
+					{
+						System.out.println(handle);
+					}
 				}
 			}
 		}
