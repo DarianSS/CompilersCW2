@@ -58,6 +58,7 @@ public class Main extends SimpleFileVisitor<Path> {
         if(fname.endsWith(".class") && !fname.endsWith("Main.class") && !fname.endsWith("ConstantFolder.class")){
             ConstantFolder cf = new ConstantFolder(file.toString());
             Path rel = Paths.get(inputRoot).relativize(file);
+            System.out.println(rel.toString());
             cf.write(Paths.get(outputRoot, rel.toString()).toAbsolutePath().toString());
         }
         return super.visitFile(file, attrs);
