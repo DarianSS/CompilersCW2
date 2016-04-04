@@ -78,91 +78,181 @@ public class ConstantFolder
 		this.optimized = gen.getJavaClass();
 	}
 	
-	private InstructionList do_iadd(InstructionHandle handle, InstructionList il){
-		//Instruction prev1 = handle.getPrev().getInstruction();
-		//Instruction prev2 = handle.getPrev().getPrev().getInstruction();
+	private InstructionList do_add(InstructionHandle handle, InstructionList il, int type){
 		
-		//if (prev1 instanceof LDC && prev2 instanceof LDC)
-		//{
-			Number ldc1 = stack.pop();
-			Number ldc2 = stack.pop();
+		int index;
+		
+		Instruction prev1 = handle.getPrev().getInstruction();
+		Instruction prev2 = handle.getPrev().getPrev().getInstruction();
+		Number ldc1 = stack.pop();
+		Number ldc2 = stack.pop();
+		
+		if (type == 1) 
+		{
 			int result = (int)ldc1 + (int)ldc2;
-			int index = cpgen.addInteger(result);
+			index = cpgen.addInteger(result);
 			stack.push(result);
-			LDC new_ldc = new LDC(index);
-			il.insert(handle, new_ldc);
-			try 
-			{
-				//il.delete(prev1);
-				//il.delete(prev2);
-				il.delete(handle);
-			} catch (TargetLostException e) 
-			{
-				e.printStackTrace();
-			}
-		//}
+		} else if (type == 2) {
+			long result = (long)ldc1 + (long)ldc2;
+			index = cpgen.addLong(result);
+			stack.push(result);
+		} else if (type == 3) {
+			float result = (float)ldc1 + (float)ldc2;
+			index = cpgen.addFloat(result);
+			stack.push(result);
+		} else {
+			double result = (double)ldc1 + (double)ldc2;
+			index = cpgen.addDouble(result);
+			stack.push(result);
+		}
+		
+		LDC new_ldc = new LDC(index);
+		il.insert(handle, new_ldc);
+		try 
+		{
+			il.delete(prev1);
+			il.delete(prev2);
+			il.delete(handle);
+		} catch (TargetLostException e) 
+		{
+			e.printStackTrace();
+		}
 		return il;
 	}
 	
 	private InstructionList do_imul(InstructionHandle handle, InstructionList il){
-		//Instruction prev1 = handle.getPrev().getInstruction();
-		//Instruction prev2 = handle.getPrev().getPrev().getInstruction();
+		Instruction prev1 = handle.getPrev().getInstruction();
+		Instruction prev2 = handle.getPrev().getPrev().getInstruction();
 		
-		//if (prev1 instanceof LDC && prev2 instanceof LDC)
-		//{
-			Number ldc1 = stack.pop();
-			Number ldc2 = stack.pop();
-			int result = (int)ldc1 * (int)ldc2;
-			int index = cpgen.addInteger(result);
-			stack.push(result);
-			LDC new_ldc = new LDC(index);
-			il.insert(handle, new_ldc);
-			try 
-			{
-				//il.delete(prev1);
-				//il.delete(prev2);
-				il.delete(handle);
-			} catch (TargetLostException e) 
-			{
-				e.printStackTrace();
-			}
-		//}
+		Number ldc1 = stack.pop();
+		Number ldc2 = stack.pop();
+		int result = (int)ldc1 * (int)ldc2;
+		int index = cpgen.addInteger(result);
+		stack.push(result);
+		LDC new_ldc = new LDC(index);
+		il.insert(handle, new_ldc);
+		try 
+		{
+			il.delete(prev1);
+			il.delete(prev2);
+			il.delete(handle);
+		} catch (TargetLostException e) 
+		{
+			e.printStackTrace();
+		}
 		return il;
 	}
 	
 	private InstructionList do_isub(InstructionHandle handle, InstructionList il){
-		//Instruction prev1 = handle.getPrev().getInstruction();
-		//Instruction prev2 = handle.getPrev().getPrev().getInstruction();
-		
-		//if (prev1 instanceof LDC && prev2 instanceof LDC)
-		//{
-			Number ldc1 = stack.pop();
-			Number ldc2 = stack.pop();
-			int result = (int)ldc2 - (int)ldc1;
-			int index = cpgen.addInteger(result);
-			stack.push(result);
-			LDC new_ldc = new LDC(index);
-			il.insert(handle, new_ldc);
-			try 
-			{
-				//il.delete(prev1);
-				//il.delete(prev2);
-				il.delete(handle);
-			} catch (TargetLostException e) 
-			{
-				e.printStackTrace();
-			}
-		//}
+		Instruction prev1 = handle.getPrev().getInstruction();
+		Instruction prev2 = handle.getPrev().getPrev().getInstruction();
+
+		Number ldc1 = stack.pop();
+		Number ldc2 = stack.pop();
+		int result = (int)ldc2 - (int)ldc1;
+		int index = cpgen.addInteger(result);
+		stack.push(result);
+		LDC new_ldc = new LDC(index);
+		il.insert(handle, new_ldc);
+		try 
+		{
+			il.delete(prev1);
+			il.delete(prev2);
+			il.delete(handle);
+		} catch (TargetLostException e) 
+		{
+			e.printStackTrace();
+		}
 		return il;
 	}
 	
-	private InstructionList handler(InstructionHandle handle, InstructionList il){
-		if(handle.getInstruction() instanceof IADD){
-			return do_iadd(handle, il);
-		} else if(handle.getInstruction() instanceof IMUL){
+	private InstructionList do_idiv(InstructionHandle handle, InstructionList il){
+		Instruction prev1 = handle.getPrev().getInstruction();
+		Instruction prev2 = handle.getPrev().getPrev().getInstruction();
+
+		Number ldc1 = stack.pop();
+		Number ldc2 = stack.pop();
+		float result = (int)ldc2 / (int)ldc1;
+		int index = cpgen.addFloat(result);
+		stack.push(result);
+		LDC new_ldc = new LDC(index);
+		il.insert(handle, new_ldc);
+		try 
+		{
+			il.delete(prev1);
+			il.delete(prev2);
+			il.delete(handle);
+		} catch (TargetLostException e) 
+		{
+			e.printStackTrace();
+		}
+		return il;
+	}
+	
+	private InstructionList do_irem(InstructionHandle handle, InstructionList il){
+		Instruction prev1 = handle.getPrev().getInstruction();
+		Instruction prev2 = handle.getPrev().getPrev().getInstruction();
+
+		Number ldc1 = stack.pop();
+		Number ldc2 = stack.pop();
+		int result = (int)ldc2 % (int)ldc1;
+		int index = cpgen.addInteger(result);
+		stack.push(result);
+		LDC new_ldc = new LDC(index);
+		il.insert(handle, new_ldc);
+		try 
+		{
+			il.delete(prev1);
+			il.delete(prev2);
+			il.delete(handle);
+		} catch (TargetLostException e) 
+		{
+			e.printStackTrace();
+		}
+		return il;
+	}
+	
+	private InstructionList do_ineg(InstructionHandle handle, InstructionList il){
+		Instruction prev1 = handle.getPrev().getInstruction();
+
+		Number ldc1 = stack.pop();
+		int result = -(int)ldc1;
+		int index = cpgen.addInteger(result);
+		stack.push(result);
+		LDC new_ldc = new LDC(index);
+		il.insert(handle, new_ldc);
+		try 
+		{
+			il.delete(prev1);
+			il.delete(handle);
+		} catch (TargetLostException e) 
+		{
+			e.printStackTrace();
+		}
+		return il;
+	}
+	
+	private InstructionList handler(InstructionHandle handle, InstructionList il) 
+	{
+		Instruction inst = handle.getInstruction();
+		if (inst instanceof IADD) {
+			return do_add(handle, il, 1);
+		} else if (inst instanceof LADD) {
+			return do_add(handle, il, 2);
+		} else if (inst instanceof FADD) {
+			return do_add(handle, il, 3);
+		} else if (inst instanceof DADD) {
+			return do_add(handle, il, 4);
+		} else if(inst instanceof IMUL || inst instanceof DMUL || inst instanceof FMUL || inst instanceof LMUL){
 			return do_imul(handle, il);
-		} else if(handle.getInstruction() instanceof ISUB){
+		} else if(inst instanceof ISUB || inst instanceof DSUB || inst instanceof FSUB || inst instanceof LSUB){
 			return do_isub(handle, il);
+		} else if(inst instanceof IDIV || inst instanceof DDIV || inst instanceof FDIV || inst instanceof LDIV){
+			return do_idiv(handle, il);
+		} else if(inst instanceof IREM || inst instanceof DREM || inst instanceof FREM || inst instanceof LREM){
+			return do_irem(handle, il);
+		} else if(inst instanceof INEG || inst instanceof DNEG || inst instanceof FNEG || inst instanceof LNEG){
+			return do_ineg(handle, il);
 		}
 		return il;
 	}
