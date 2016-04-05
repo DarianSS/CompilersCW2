@@ -28,6 +28,12 @@ public class ConstantFolder
 
 	JavaClass original = null;
 	JavaClass optimized = null;
+	
+	@FunctionalInterface
+	private interface Operation 
+	{
+		Number op(Number x, Number y); 
+	}
 
 	public ConstantFolder(String classFilePath)
 	{
@@ -91,34 +97,34 @@ public class ConstantFolder
 		this.optimized = gen.getJavaClass();
 	}
 	
-	private InstructionList do_add(InstructionHandle handle, InstructionList il, int type){
+	private InstructionList do_operation(InstructionHandle handle, InstructionList il, int type, Operation Op){
 		
 		int index;	
+		CPInstruction new_ldc;
 		Number ldc1 = stack.pop();
 		Number ldc2 = stack.pop();
-		CPInstruction new_ldc;
 		
 		if (type == 1) 
 		{
-			int result = (int)ldc1 + (int)ldc2;
+			int result = (Op.op(ldc1.intValue(), ldc2.intValue())).intValue();
 			index = cpgen.addInteger(result);
-			stack.push(result);
 			new_ldc = new LDC(index);
+			stack.push(result);
 		} else if (type == 2) {
-			long result = (long)ldc1 + (long)ldc2;
+			long result = (Op.op(ldc1.longValue(), ldc2.longValue())).longValue();
 			index = cpgen.addLong(result);
 			new_ldc = new LDC2_W(index);
 			stack.push(result);
 		} else if (type == 3) {
-			float result = (float)ldc1 + (float)ldc2;
+			float result = (Op.op(ldc1.floatValue(), ldc2.floatValue())).floatValue();
 			index = cpgen.addFloat(result);
-			stack.push(result);
 			new_ldc = new LDC(index);
-		} else {
-			double result = ldc1.doubleValue() + ldc2.doubleValue();
-			index = cpgen.addDouble(result);
 			stack.push(result);
+		} else {
+			double result = (Op.op(ldc1.doubleValue(), ldc2.doubleValue())).doubleValue();
+			index = cpgen.addDouble(result);
 			new_ldc = new LDC2_W(index);
+			stack.push(result);
 		}
 		
 		il.insert(handle, new_ldc);
@@ -139,114 +145,36 @@ public class ConstantFolder
 		return il;
 	}
 	
-	private InstructionList do_mul(InstructionHandle handle, InstructionList il){
+	private InstructionList do_neg(InstructionHandle handle, InstructionList il, int type){
+
+		int index;
+		CPInstruction new_ldc;
+		Number ldc1 = stack.pop();
 		
-		Number ldc1 = stack.pop();
-		Number ldc2 = stack.pop();
-		int result = ldc1.intValue() * ldc2.intValue();
-		int index = cpgen.addInteger(result);
-		stack.push(result);
-		LDC new_ldc = new LDC(index);
-		il.insert(handle, new_ldc);
-		try 
-		{
-			il.delete(handle);
-		} catch (TargetLostException e) 
-		{
-			InstructionHandle[] targets = e.getTargets();
-	         for(int i=0; i < targets.length; i++) {
-	           InstructionTargeter[] targeters = targets[i].getTargeters();
-	     
-	           for(int j=0; j < targeters.length; j++)
-	             targeters[j].updateTarget(targets[i], handle.getNext());
-	       }
+		if (type == 1) {
+			int result = -ldc1.intValue();
+			index = cpgen.addInteger(result);
+			new_ldc = new LDC(index);
+			stack.push(result);
+		} else if (type == 2) {
+			long result = -ldc1.longValue();
+			index = cpgen.addLong(result);
+			new_ldc = new LDC2_W(index);
+			stack.push(result);
+		} else if (type == 3) {
+			int result = -ldc1.intValue();
+			index = cpgen.addInteger(result);
+			new_ldc = new LDC(index);
+			stack.push(result);
+		} else {
+			int result = -ldc1.intValue();
+			index = cpgen.addInteger(result);
+			new_ldc = new LDC2_W(index);
+			stack.push(result);
 		}
-		return il;
-	}
-	
-	private InstructionList do_sub(InstructionHandle handle, InstructionList il){
-
-		Number ldc1 = stack.pop();
-		Number ldc2 = stack.pop();
-		int result = (int)ldc2 - (int)ldc1;
-		int index = cpgen.addInteger(result);
-		stack.push(result);
-		LDC new_ldc = new LDC(index);
+		
 		il.insert(handle, new_ldc);
-		try 
-		{
-			il.delete(handle);
-		} catch (TargetLostException e) 
-		{
-			InstructionHandle[] targets = e.getTargets();
-	         for(int i=0; i < targets.length; i++) {
-	           InstructionTargeter[] targeters = targets[i].getTargeters();
-	     
-	           for(int j=0; j < targeters.length; j++)
-	             targeters[j].updateTarget(targets[i], handle.getNext());
-	       }
-		}
-		return il;
-	}
-	
-	private InstructionList do_div(InstructionHandle handle, InstructionList il){
-
-		Number ldc1 = stack.pop();
-		Number ldc2 = stack.pop();
-		float result = (int)ldc2 / (int)ldc1;
-		int index = cpgen.addFloat(result);
-		stack.push(result);
-		LDC new_ldc = new LDC(index);
-		il.insert(handle, new_ldc);
-		try 
-		{
-			il.delete(handle);
-		} catch (TargetLostException e) 
-		{
-			InstructionHandle[] targets = e.getTargets();
-	         for(int i=0; i < targets.length; i++) {
-	           InstructionTargeter[] targeters = targets[i].getTargeters();
-	     
-	           for(int j=0; j < targeters.length; j++)
-	             targeters[j].updateTarget(targets[i], handle.getNext());
-	       }
-		}
-		return il;
-	}
-	
-	private InstructionList do_rem(InstructionHandle handle, InstructionList il){
-
-		Number ldc1 = stack.pop();
-		Number ldc2 = stack.pop();
-		int result = (int)ldc2 % (int)ldc1;
-		int index = cpgen.addInteger(result);
-		stack.push(result);
-		LDC new_ldc = new LDC(index);
-		il.insert(handle, new_ldc);
-		try 
-		{
-			il.delete(handle);
-		} catch (TargetLostException e) 
-		{
-			InstructionHandle[] targets = e.getTargets();
-	         for(int i=0; i < targets.length; i++) {
-	           InstructionTargeter[] targeters = targets[i].getTargeters();
-	     
-	           for(int j=0; j < targeters.length; j++)
-	             targeters[j].updateTarget(targets[i], handle.getNext());
-	       }
-		}
-		return il;
-	}
-	
-	private InstructionList do_neg(InstructionHandle handle, InstructionList il){
-
-		Number ldc1 = stack.pop();
-		int result = -(int)ldc1;
-		int index = cpgen.addInteger(result);
-		stack.push(result);
-		LDC new_ldc = new LDC(index);
-		il.insert(handle, new_ldc);
+		System.out.println("inserted");
 		try 
 		{
 			il.delete(handle);
@@ -276,53 +204,53 @@ public class ConstantFolder
 	{
 		Instruction inst = handle.getInstruction();
 		if (inst instanceof IADD) {
-			return do_add(handle, il, 1);
+			return do_operation(handle, il, 1, (x, y) -> x.intValue() + y.intValue());
 		} else if (inst instanceof LADD) {
-			return do_add(handle, il, 2);
+			return do_operation(handle, il, 2, (x, y) -> x.intValue() + y.intValue());
 		} else if (inst instanceof FADD) {
-			return do_add(handle, il, 3);
+			return do_operation(handle, il, 3, (x, y) -> x.intValue() + y.intValue());
 		} else if (inst instanceof DADD) {
-			return do_add(handle, il, 4);
+			return do_operation(handle, il, 4, (x, y) -> x.intValue() + y.intValue());
 		} else if (inst instanceof IMUL) {
-			return do_mul(handle, il);
+			return do_operation(handle, il, 1, (x, y) -> x.intValue() * y.intValue());
 		} else if (inst instanceof LMUL) {
-			return do_mul(handle, il);
+			return do_operation(handle, il, 2, (x, y) -> x.intValue() * y.intValue());
 		} else if (inst instanceof FMUL) {
-			return do_mul(handle, il);
+			return do_operation(handle, il, 3, (x, y) -> x.intValue() * y.intValue());
 		} else if (inst instanceof DMUL) {
-			return do_mul(handle, il);
+			return do_operation(handle, il, 4, (x, y) -> x.intValue() * y.intValue());
 		} else if (inst instanceof ISUB) {
-			return do_sub(handle, il);
+			return do_operation(handle, il, 1, (x, y) -> x.intValue() - y.intValue());
 		} else if (inst instanceof LSUB) {
-			return do_sub(handle, il);
+			return do_operation(handle, il, 2, (x, y) -> x.intValue() - y.intValue());
 		} else if (inst instanceof FSUB) {
-			return do_sub(handle, il);
+			return do_operation(handle, il, 3, (x, y) -> x.intValue() - y.intValue());
 		} else if (inst instanceof DSUB) {
-			return do_sub(handle, il);
+			return do_operation(handle, il, 4, (x, y) -> x.intValue() - y.intValue());
 		} else if (inst instanceof IDIV) {
-			return do_div(handle, il);
+			return do_operation(handle, il, 1, (x, y) -> x.intValue() / y.intValue());
 		} else if (inst instanceof LDIV) {
-			return do_div(handle, il);
+			return do_operation(handle, il, 2, (x, y) -> x.intValue() / y.intValue());
 		} else if (inst instanceof FDIV) {
-			return do_div(handle, il);
+			return do_operation(handle, il, 3, (x, y) -> x.intValue() / y.intValue());
 		} else if (inst instanceof DDIV) {
-			return do_div(handle, il);
+			return do_operation(handle, il, 4, (x, y) -> x.intValue() / y.intValue());
 		} else if (inst instanceof IREM) {
-			return do_rem(handle, il);
+			return do_operation(handle, il, 1, (x, y) -> x.intValue() % y.intValue());
 		} else if (inst instanceof LREM) {
-			return do_rem(handle, il);
+			return do_operation(handle, il, 2, (x, y) -> x.intValue() % y.intValue());
 		} else if (inst instanceof FREM) {
-			return do_rem(handle, il);
+			return do_operation(handle, il, 3, (x, y) -> x.intValue() % y.intValue());
 		} else if (inst instanceof DREM) {
-			return do_rem(handle, il);
+			return do_operation(handle, il, 4, (x, y) -> x.intValue() % y.intValue());
 		} else if (inst instanceof INEG) {
-			return do_neg(handle, il);
+			return do_neg(handle, il, 1);
 		} else if (inst instanceof LNEG) {
-			return do_neg(handle, il);
+			return do_neg(handle, il, 2);
 		} else if (inst instanceof FNEG) {
-			return do_neg(handle, il);
+			return do_neg(handle, il, 3);
 		} else if (inst instanceof DNEG) {
-			return do_neg(handle, il);
+			return do_neg(handle, il, 4);
 		} else if (inst instanceof I2D){
 			return do_i2d(handle, il);
 		}
