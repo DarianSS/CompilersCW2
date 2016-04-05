@@ -62,7 +62,7 @@ public class ConstantFolder
 				il = maintainStack(handle, il);
 			}
 			
-			// ldcExterminator(il);
+			ldcExterminator(il);
 			System.out.println(il.toString());
 			il.setPositions(true);
 			m.setMaxStack();
@@ -190,7 +190,6 @@ public class ConstantFolder
 		} else if (inst instanceof DMUL) {
 			return do_operation(handle, il, 4, (x, y) -> x.doubleValue() * y.doubleValue());
 		} else if (inst instanceof ISUB) {
-			System.out.println("LALALALA");
 			return do_operation(handle, il, 1, (x, y) -> x.intValue() - y.intValue());
 		} else if (inst instanceof LSUB) {
 			return do_operation(handle, il, 2, (x, y) -> x.longValue() - y.longValue());
@@ -293,8 +292,11 @@ public class ConstantFolder
 	 		InstructionHandle handle = il.getStart().getNext(), end = il.getEnd();
 	 		do {
 	 			InstructionHandle previous = handle.getPrev();
-	 			if (previous.getInstruction() instanceof LDC || previous.getInstruction() instanceof LDC2_W)
-	 			il = removeHandle(il, previous);
+	 			if ((handle.getInstruction() instanceof LDC || handle.getInstruction() instanceof LDC2_W) &&
+	 			 (previous.getInstruction() instanceof LDC || previous.getInstruction() instanceof LDC2_W)) {
+	 				il = removeHandle(il, previous);
+	 				System.out.println("exterminated");
+	 			}
 	 			handle = handle.getNext();
 	 		} while (handle != end); 
 	 	}
