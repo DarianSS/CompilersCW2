@@ -292,8 +292,10 @@ public class ConstantFolder
 	 		InstructionHandle handle = il.getStart().getNext(), end = il.getEnd();
 	 		do {
 	 			InstructionHandle previous = handle.getPrev();
+	 			InstructionHandle next = handle.getNext();
 	 			if ((handle.getInstruction() instanceof LDC || handle.getInstruction() instanceof LDC2_W) &&
-	 			 (previous.getInstruction() instanceof LDC || previous.getInstruction() instanceof LDC2_W)) {
+	 			 (previous.getInstruction() instanceof LDC || previous.getInstruction() instanceof LDC2_W) &&
+	 			 !(next.getInstruction() instanceof IfInstruction)) {
 	 				il = removeHandle(il, previous);
 	 				System.out.println("exterminated");
 	 			}
