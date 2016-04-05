@@ -34,7 +34,7 @@ public class ConstantFolder
 		try{
 			this.parser = new ClassParser(classFilePath);
 			this.original = this.parser.parse();
-			this.gen = new ClassGen(this.original);
+			this.gen = new ClassGen(this.original); gen.setMajor(50);
 			this.cpgen = gen.getConstantPool();
 		} catch(IOException e){
 			e.printStackTrace();
@@ -44,8 +44,6 @@ public class ConstantFolder
 	public void optimize()
 	{
 		// Implement your optimization here
-		
-		Boolean optimised = false;
 		
 		Method[] methods = gen.getMethods();
 		for (Method method : methods)
@@ -81,7 +79,7 @@ public class ConstantFolder
 				maintainStack(handle, il);
 			}
 			
-			//ldcExterminator(il);
+			ldcExterminator(il);
 			il.setPositions(true);
 			m.setMaxStack();
 			m.setMaxLocals();
@@ -95,10 +93,7 @@ public class ConstantFolder
 	
 	private InstructionList do_add(InstructionHandle handle, InstructionList il, int type){
 		
-		int index;
-		
-		//Instruction prev1 = handle.getPrev().getInstruction();
-		//Instruction prev2 = handle.getPrev().getPrev().getInstruction();
+		int index;	
 		Number ldc1 = stack.pop();
 		Number ldc2 = stack.pop();
 		CPInstruction new_ldc;
@@ -130,8 +125,6 @@ public class ConstantFolder
 		System.out.println("inserted");
 		try 
 		{
-			//il.delete(prev1);
-			//il.delete(prev2);
 			il.delete(handle);
 		} catch (TargetLostException e) 
 		{
@@ -147,20 +140,16 @@ public class ConstantFolder
 	}
 	
 	private InstructionList do_mul(InstructionHandle handle, InstructionList il){
-		//Instruction prev1 = handle.getPrev().getInstruction();
-		//Instruction prev2 = handle.getPrev().getPrev().getInstruction();
 		
 		Number ldc1 = stack.pop();
 		Number ldc2 = stack.pop();
-		int result = (int)ldc1 * (int)ldc2;
+		int result = ldc1.intValue() * ldc2.intValue();
 		int index = cpgen.addInteger(result);
 		stack.push(result);
 		LDC new_ldc = new LDC(index);
 		il.insert(handle, new_ldc);
 		try 
 		{
-			//il.delete(prev1);
-			//il.delete(prev2);
 			il.delete(handle);
 		} catch (TargetLostException e) 
 		{
@@ -176,8 +165,6 @@ public class ConstantFolder
 	}
 	
 	private InstructionList do_sub(InstructionHandle handle, InstructionList il){
-		//Instruction prev1 = handle.getPrev().getInstruction();
-		//Instruction prev2 = handle.getPrev().getPrev().getInstruction();
 
 		Number ldc1 = stack.pop();
 		Number ldc2 = stack.pop();
@@ -188,8 +175,6 @@ public class ConstantFolder
 		il.insert(handle, new_ldc);
 		try 
 		{
-			//il.delete(prev1);
-			//il.delete(prev2);
 			il.delete(handle);
 		} catch (TargetLostException e) 
 		{
@@ -205,8 +190,6 @@ public class ConstantFolder
 	}
 	
 	private InstructionList do_div(InstructionHandle handle, InstructionList il){
-		Instruction prev1 = handle.getPrev().getInstruction();
-		Instruction prev2 = handle.getPrev().getPrev().getInstruction();
 
 		Number ldc1 = stack.pop();
 		Number ldc2 = stack.pop();
@@ -217,8 +200,6 @@ public class ConstantFolder
 		il.insert(handle, new_ldc);
 		try 
 		{
-			//il.delete(prev1);
-			//il.delete(prev2);
 			il.delete(handle);
 		} catch (TargetLostException e) 
 		{
@@ -234,8 +215,6 @@ public class ConstantFolder
 	}
 	
 	private InstructionList do_rem(InstructionHandle handle, InstructionList il){
-		Instruction prev1 = handle.getPrev().getInstruction();
-		Instruction prev2 = handle.getPrev().getPrev().getInstruction();
 
 		Number ldc1 = stack.pop();
 		Number ldc2 = stack.pop();
@@ -246,8 +225,6 @@ public class ConstantFolder
 		il.insert(handle, new_ldc);
 		try 
 		{
-			//il.delete(prev1);
-			//il.delete(prev2);
 			il.delete(handle);
 		} catch (TargetLostException e) 
 		{
@@ -263,7 +240,6 @@ public class ConstantFolder
 	}
 	
 	private InstructionList do_neg(InstructionHandle handle, InstructionList il){
-		Instruction prev1 = handle.getPrev().getInstruction();
 
 		Number ldc1 = stack.pop();
 		int result = -(int)ldc1;
@@ -273,7 +249,6 @@ public class ConstantFolder
 		il.insert(handle, new_ldc);
 		try 
 		{
-			//il.delete(prev1);
 			il.delete(handle);
 		} catch (TargetLostException e) 
 		{
@@ -309,76 +284,77 @@ public class ConstantFolder
 		} else if (inst instanceof DADD) {
 			return do_add(handle, il, 4);
 		} else if (inst instanceof IMUL) {
-			 			return do_mul(handle, il);
-			 		} else if (inst instanceof LMUL) {
-			 			return do_mul(handle, il);
-			 		} else if (inst instanceof FMUL) {
-			 			return do_mul(handle, il);
-			 		} else if (inst instanceof DMUL) {
-			 			return do_mul(handle, il);
-			 		} else if (inst instanceof ISUB) {
-			 			return do_sub(handle, il);
-			 		} else if (inst instanceof LSUB) {
-			 			return do_sub(handle, il);
-			 		} else if (inst instanceof FSUB) {
-			 			return do_sub(handle, il);
-			 		} else if (inst instanceof DSUB) {
-						return do_sub(handle, il);
-			 		} else if (inst instanceof IDIV) {
-			 			return do_div(handle, il);
-			 		} else if (inst instanceof LDIV) {
-			 			return do_div(handle, il);
-			 		} else if (inst instanceof FDIV) {
-			 			return do_div(handle, il);
-			 		} else if (inst instanceof DDIV) {
-			 			return do_div(handle, il);
-			 		} else if (inst instanceof IREM) {
-			 			return do_rem(handle, il);
-			 		} else if (inst instanceof LREM) {
-			 			return do_rem(handle, il);
-			 		} else if (inst instanceof FREM) {
-			 			return do_rem(handle, il);
-			 		} else if (inst instanceof DREM) {
-			 			return do_rem(handle, il);
-			 		} else if (inst instanceof INEG) {
-			 			return do_neg(handle, il);
-			 		} else if (inst instanceof LNEG) {
-			 			return do_neg(handle, il);
-			 		} else if (inst instanceof FNEG) {
-			 			return do_neg(handle, il);
-			 		} else if (inst instanceof DNEG) {
-			 			return do_neg(handle, il);
-			  		} else if (inst instanceof I2D){
-			  			return do_i2d(handle, il);
-			  		}
+			return do_mul(handle, il);
+		} else if (inst instanceof LMUL) {
+			return do_mul(handle, il);
+		} else if (inst instanceof FMUL) {
+			return do_mul(handle, il);
+		} else if (inst instanceof DMUL) {
+			return do_mul(handle, il);
+		} else if (inst instanceof ISUB) {
+			return do_sub(handle, il);
+		} else if (inst instanceof LSUB) {
+			return do_sub(handle, il);
+		} else if (inst instanceof FSUB) {
+			return do_sub(handle, il);
+		} else if (inst instanceof DSUB) {
+			return do_sub(handle, il);
+		} else if (inst instanceof IDIV) {
+			return do_div(handle, il);
+		} else if (inst instanceof LDIV) {
+			return do_div(handle, il);
+		} else if (inst instanceof FDIV) {
+			return do_div(handle, il);
+		} else if (inst instanceof DDIV) {
+			return do_div(handle, il);
+		} else if (inst instanceof IREM) {
+			return do_rem(handle, il);
+		} else if (inst instanceof LREM) {
+			return do_rem(handle, il);
+		} else if (inst instanceof FREM) {
+			return do_rem(handle, il);
+		} else if (inst instanceof DREM) {
+			return do_rem(handle, il);
+		} else if (inst instanceof INEG) {
+			return do_neg(handle, il);
+		} else if (inst instanceof LNEG) {
+			return do_neg(handle, il);
+		} else if (inst instanceof FNEG) {
+			return do_neg(handle, il);
+		} else if (inst instanceof DNEG) {
+			return do_neg(handle, il);
+		} else if (inst instanceof I2D){
+			return do_i2d(handle, il);
+		}
 		return il;
 	}
 	
 	private void maintainStack(InstructionHandle handle, InstructionList il){
-		if(handle.getInstruction() instanceof ICONST){
+		Instruction inst = handle.getInstruction();
+		if(inst instanceof ICONST){
 			stack.push(Character.getNumericValue(handle.getInstruction().toString().charAt(7)));
 			deletePrev = true;
-		} else if(handle.getInstruction() instanceof LDC){
-			LDC val = (LDC)handle.getInstruction();
+		} else if(inst instanceof LDC){
+			LDC val = (LDC)inst;
 			Object obj = val.getValue(cpgen);
 			if(obj instanceof Number){
 				stack.push((Number)obj);
 				deletePrev = true;
 			}
-		} else if(handle.getInstruction() instanceof LDC2_W){
-			LDC2_W val = (LDC2_W)handle.getInstruction();
+		} else if(inst instanceof LDC2_W){
+			LDC2_W val = (LDC2_W)inst;
 			Object obj = val.getValue(cpgen);
 			if(obj instanceof Number){
 				stack.push((Number)obj);
 				deletePrev = true;
 			}
-		} else if(handle.getInstruction() instanceof BIPUSH){
-			BIPUSH val = (BIPUSH)handle.getInstruction();
+		} else if(inst instanceof BIPUSH){
+			BIPUSH val = (BIPUSH)inst;
 			Number obj = val.getValue();
 			stack.push(obj);
 			deletePrev = true;
-		} else if(handle.getInstruction() instanceof SIPUSH){
-			SIPUSH val = (SIPUSH)handle.getInstruction();
+		} else if(inst instanceof SIPUSH){
+			SIPUSH val = (SIPUSH)inst;
 			Number obj = val.getValue();
 			stack.push(obj);
 			deletePrev = true;
@@ -388,18 +364,19 @@ public class ConstantFolder
 	}
 	
 	private void maintainLocals(InstructionHandle handle){
-		if(handle.getInstruction() instanceof StoreInstruction){
-			locals[Character.getNumericValue((handle.getInstruction().toString().charAt(7)))] = stack.pop();
+		Instruction inst = handle.getInstruction();
+		if(inst instanceof StoreInstruction){
+			locals[Character.getNumericValue((inst.toString().charAt(7)))] = stack.pop();
 			deletePrev = true;
-		} else if(handle.getInstruction() instanceof LoadInstruction && !(handle.getInstruction() instanceof ALOAD)){
-			stack.push(locals[Character.getNumericValue(handle.getInstruction().toString().charAt(6))]);
+		} else if(inst instanceof LoadInstruction && !(inst instanceof ALOAD)){
+			stack.push(locals[Character.getNumericValue(inst.toString().charAt(6))]);
 			deletePrev = true;
 		}
 	}
 	
 	private void ldcExterminator(InstructionList il) 
 	{
-	 		InstructionHandle handle = il.getStart(), end = il.getEnd();
+	 		InstructionHandle handle = il.getStart().getNext(), end = il.getEnd();
 	 		do {
 	 			InstructionHandle previous = handle.getPrev();
 	 			if (previous.getInstruction() instanceof LDC || previous.getInstruction() instanceof LDC2_W)
