@@ -1,7 +1,7 @@
 ; Jasmin Java assembler code that assembles the SimpleFolding example class
 
 .source Type1.j
-.class public comp207p/target/SimpleFolding
+.class public comp207p/target/CSimpleFolding
 .super java/lang/Object
 
 .method public <init>()V

@@ -23,12 +23,6 @@ public class ConstantFolder
 	ConstantPoolGen cpgen = null;
 	Deque<Number> stack;
 	Number[] locals;
-	
-	@FunctionalInterface
-	private interface Operation 
-	{
-		Number op(Number x, Number y); 
-	}
 
 	JavaClass original = null;
 	JavaClass optimized = null;
@@ -68,7 +62,7 @@ public class ConstantFolder
 				il = maintainStack(handle, il);
 			}
 			
-			//ldcExterminator(il);
+			// ldcExterminator(il);
 			System.out.println(il.toString());
 			il.setPositions(true);
 			m.setMaxStack();
@@ -104,7 +98,7 @@ public class ConstantFolder
 		
 		if (type == 1) 
 		{
-			int result = (Op.op(ldc1.intValue(), ldc2.intValue())).intValue();
+			int result = (Op.op(ldc2.intValue(), ldc1.intValue())).intValue();
 			index = cpgen.addInteger(result);
 			new_ldc = new LDC(index);
 			stack.push(result);
@@ -130,6 +124,8 @@ public class ConstantFolder
 		il = removeHandle(il, handle);
 		return il;
 	}
+	
+	
 	
 	private InstructionList do_neg(InstructionHandle handle, InstructionList il, int type){
 
@@ -194,6 +190,7 @@ public class ConstantFolder
 		} else if (inst instanceof DMUL) {
 			return do_operation(handle, il, 4, (x, y) -> x.doubleValue() * y.doubleValue());
 		} else if (inst instanceof ISUB) {
+			System.out.println("LALALALA");
 			return do_operation(handle, il, 1, (x, y) -> x.intValue() - y.intValue());
 		} else if (inst instanceof LSUB) {
 			return do_operation(handle, il, 2, (x, y) -> x.longValue() - y.longValue());

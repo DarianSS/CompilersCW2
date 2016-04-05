@@ -11,9 +11,9 @@ import java.io.PrintStream;
 /**
  * test simple folding
  */
-public class SimpleFoldingTest {
+public class CSimpleFoldingTest {
 
-    SimpleFolding sf = new SimpleFolding();
+    CSimpleFolding sf = new CSimpleFolding();
     
     private final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
     
