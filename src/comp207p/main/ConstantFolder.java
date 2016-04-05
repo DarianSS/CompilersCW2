@@ -206,43 +206,43 @@ public class ConstantFolder
 		if (inst instanceof IADD) {
 			return do_operation(handle, il, 1, (x, y) -> x.intValue() + y.intValue());
 		} else if (inst instanceof LADD) {
-			return do_operation(handle, il, 2, (x, y) -> x.intValue() + y.intValue());
+			return do_operation(handle, il, 2, (x, y) -> x.longValue() + y.longValue());
 		} else if (inst instanceof FADD) {
-			return do_operation(handle, il, 3, (x, y) -> x.intValue() + y.intValue());
+			return do_operation(handle, il, 3, (x, y) -> x.floatValue() + y.floatValue());
 		} else if (inst instanceof DADD) {
-			return do_operation(handle, il, 4, (x, y) -> x.intValue() + y.intValue());
+			return do_operation(handle, il, 4, (x, y) -> x.doubleValue() + y.doubleValue());
 		} else if (inst instanceof IMUL) {
 			return do_operation(handle, il, 1, (x, y) -> x.intValue() * y.intValue());
 		} else if (inst instanceof LMUL) {
-			return do_operation(handle, il, 2, (x, y) -> x.intValue() * y.intValue());
+			return do_operation(handle, il, 2, (x, y) -> x.longValue() * y.longValue());
 		} else if (inst instanceof FMUL) {
-			return do_operation(handle, il, 3, (x, y) -> x.intValue() * y.intValue());
+			return do_operation(handle, il, 3, (x, y) -> x.floatValue() * y.floatValue());
 		} else if (inst instanceof DMUL) {
-			return do_operation(handle, il, 4, (x, y) -> x.intValue() * y.intValue());
+			return do_operation(handle, il, 4, (x, y) -> x.doubleValue() * y.doubleValue());
 		} else if (inst instanceof ISUB) {
 			return do_operation(handle, il, 1, (x, y) -> x.intValue() - y.intValue());
 		} else if (inst instanceof LSUB) {
-			return do_operation(handle, il, 2, (x, y) -> x.intValue() - y.intValue());
+			return do_operation(handle, il, 2, (x, y) -> x.longValue() - y.longValue());
 		} else if (inst instanceof FSUB) {
-			return do_operation(handle, il, 3, (x, y) -> x.intValue() - y.intValue());
+			return do_operation(handle, il, 3, (x, y) -> x.floatValue() - y.floatValue());
 		} else if (inst instanceof DSUB) {
-			return do_operation(handle, il, 4, (x, y) -> x.intValue() - y.intValue());
+			return do_operation(handle, il, 4, (x, y) -> x.doubleValue() - y.doubleValue());
 		} else if (inst instanceof IDIV) {
 			return do_operation(handle, il, 1, (x, y) -> x.intValue() / y.intValue());
 		} else if (inst instanceof LDIV) {
-			return do_operation(handle, il, 2, (x, y) -> x.intValue() / y.intValue());
+			return do_operation(handle, il, 2, (x, y) -> x.longValue() / y.longValue());
 		} else if (inst instanceof FDIV) {
-			return do_operation(handle, il, 3, (x, y) -> x.intValue() / y.intValue());
+			return do_operation(handle, il, 3, (x, y) -> x.floatValue() / y.floatValue());
 		} else if (inst instanceof DDIV) {
-			return do_operation(handle, il, 4, (x, y) -> x.intValue() / y.intValue());
+			return do_operation(handle, il, 4, (x, y) -> x.doubleValue() / y.doubleValue());
 		} else if (inst instanceof IREM) {
 			return do_operation(handle, il, 1, (x, y) -> x.intValue() % y.intValue());
 		} else if (inst instanceof LREM) {
-			return do_operation(handle, il, 2, (x, y) -> x.intValue() % y.intValue());
+			return do_operation(handle, il, 2, (x, y) -> x.longValue() % y.longValue());
 		} else if (inst instanceof FREM) {
-			return do_operation(handle, il, 3, (x, y) -> x.intValue() % y.intValue());
+			return do_operation(handle, il, 3, (x, y) -> x.floatValue() % y.floatValue());
 		} else if (inst instanceof DREM) {
-			return do_operation(handle, il, 4, (x, y) -> x.intValue() % y.intValue());
+			return do_operation(handle, il, 4, (x, y) -> x.doubleValue() % y.doubleValue());
 		} else if (inst instanceof INEG) {
 			return do_neg(handle, il, 1);
 		} else if (inst instanceof LNEG) {
