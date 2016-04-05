@@ -63,7 +63,6 @@ public class ConstantFolder
 				if(deletePrev == true){
 					try {
 						il.delete(handle.getPrev());
-						deletePrev = false;
 					} catch (TargetLostException e) {
 						InstructionHandle[] targets = e.getTargets();
 				         for(int i=0; i < targets.length; i++) {
@@ -72,6 +71,8 @@ public class ConstantFolder
 				           for(int j=0; j < targeters.length; j++)
 				             targeters[j].updateTarget(targets[i], handle);
 				       }
+					} finally {
+						deletePrev = false;
 					}
 				}
 				il = handler(handle, il);
@@ -80,7 +81,7 @@ public class ConstantFolder
 				maintainStack(handle, il);
 			}
 			
-			ldcExterminator(il);
+			//ldcExterminator(il);
 			il.setPositions(true);
 			m.setMaxStack();
 			m.setMaxLocals();
@@ -100,45 +101,48 @@ public class ConstantFolder
 		//Instruction prev2 = handle.getPrev().getPrev().getInstruction();
 		Number ldc1 = stack.pop();
 		Number ldc2 = stack.pop();
+		CPInstruction new_ldc;
 		
 		if (type == 1) 
 		{
 			int result = (int)ldc1 + (int)ldc2;
 			index = cpgen.addInteger(result);
 			stack.push(result);
+			new_ldc = new LDC(index);
 		} else if (type == 2) {
 			long result = (long)ldc1 + (long)ldc2;
 			index = cpgen.addLong(result);
+			new_ldc = new LDC2_W(index);
 			stack.push(result);
 		} else if (type == 3) {
 			float result = (float)ldc1 + (float)ldc2;
 			index = cpgen.addFloat(result);
 			stack.push(result);
+			new_ldc = new LDC(index);
 		} else {
-			double result = (double)ldc1 + (double)ldc2;
+			double result = ldc1.doubleValue() + ldc2.doubleValue();
 			index = cpgen.addDouble(result);
 			stack.push(result);
-			System.out.println(result);
+			new_ldc = new LDC2_W(index);
 		}
 		
-		LDC new_ldc = new LDC(index);
 		il.insert(handle, new_ldc);
 		System.out.println("inserted");
-//		try 
-//		{
-//			//il.delete(prev1);
-//			//il.delete(prev2);
-//			il.delete(handle);
-//		} catch (TargetLostException e) 
-//		{
-//			InstructionHandle[] targets = e.getTargets();
-//	         for(int i=0; i < targets.length; i++) {
-//	           InstructionTargeter[] targeters = targets[i].getTargeters();
-//	     
-//	           for(int j=0; j < targeters.length; j++)
-//	             targeters[j].updateTarget(targets[i], handle.getNext());
-//	       }
-//		}
+		try 
+		{
+			//il.delete(prev1);
+			//il.delete(prev2);
+			il.delete(handle);
+		} catch (TargetLostException e) 
+		{
+			InstructionHandle[] targets = e.getTargets();
+	         for(int i=0; i < targets.length; i++) {
+	           InstructionTargeter[] targeters = targets[i].getTargeters();
+	     
+	           for(int j=0; j < targeters.length; j++)
+	             targeters[j].updateTarget(targets[i], handle.getNext());
+	       }
+		}
 		return il;
 	}
 	
@@ -172,8 +176,8 @@ public class ConstantFolder
 	}
 	
 	private InstructionList do_sub(InstructionHandle handle, InstructionList il){
-		Instruction prev1 = handle.getPrev().getInstruction();
-		Instruction prev2 = handle.getPrev().getPrev().getInstruction();
+		//Instruction prev1 = handle.getPrev().getInstruction();
+		//Instruction prev2 = handle.getPrev().getPrev().getInstruction();
 
 		Number ldc1 = stack.pop();
 		Number ldc2 = stack.pop();
@@ -288,6 +292,7 @@ public class ConstantFolder
 		Integer in = stack.pop().intValue();
 		Double d = in.doubleValue();
 		stack.push(d);
+		deletePrev = true;
 		
 		return il;
 	}
@@ -343,6 +348,8 @@ public class ConstantFolder
 			 			return do_neg(handle, il);
 			 		} else if (inst instanceof DNEG) {
 			 			return do_neg(handle, il);
+			  		} else if (inst instanceof I2D){
+			  			return do_i2d(handle, il);
 			  		}
 		return il;
 	}
@@ -350,30 +357,34 @@ public class ConstantFolder
 	private void maintainStack(InstructionHandle handle, InstructionList il){
 		if(handle.getInstruction() instanceof ICONST){
 			stack.push(Character.getNumericValue(handle.getInstruction().toString().charAt(7)));
+			deletePrev = true;
 		} else if(handle.getInstruction() instanceof LDC){
 			LDC val = (LDC)handle.getInstruction();
 			Object obj = val.getValue(cpgen);
 			if(obj instanceof Number){
 				stack.push((Number)obj);
+				deletePrev = true;
 			}
 		} else if(handle.getInstruction() instanceof LDC2_W){
 			LDC2_W val = (LDC2_W)handle.getInstruction();
 			Object obj = val.getValue(cpgen);
 			if(obj instanceof Number){
 				stack.push((Number)obj);
+				deletePrev = true;
 			}
 		} else if(handle.getInstruction() instanceof BIPUSH){
 			BIPUSH val = (BIPUSH)handle.getInstruction();
 			Number obj = val.getValue();
 			stack.push(obj);
+			deletePrev = true;
 		} else if(handle.getInstruction() instanceof SIPUSH){
 			SIPUSH val = (SIPUSH)handle.getInstruction();
 			Number obj = val.getValue();
 			stack.push(obj);
+			deletePrev = true;
 		} else {
 			return;
 		}
-		deletePrev = true;
 	}
 	
 	private void maintainLocals(InstructionHandle handle){
