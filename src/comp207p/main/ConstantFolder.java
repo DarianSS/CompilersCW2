@@ -52,10 +52,16 @@ public class ConstantFolder
 			il = m.getInstructionList();
 			stack = new ArrayDeque<Number>();
 			locals = new Number[6];
+			il = foldingPreparator(il);
 			
 			for (InstructionHandle handle : il.getInstructionHandles()) 
 			{	
 				System.out.println(handle.getInstruction().getName());
+				
+				if (handle.getInstruction() instanceof IINC)
+					System.out.println("IIIIIIINC:" + ((IINC) handle.getInstruction()).getIndex());
+				
+				
 				il = handler(handle, il);
 				il = maintainLocals(handle, il);
 				il = maintainStack(handle, il);
@@ -85,6 +91,39 @@ public class ConstantFolder
 	             targeters[j].updateTarget(targets[i], handle.getNext());
 	       }
 		}
+		return il;
+	}
+	
+	private InstructionList foldingPreparator(InstructionList il) 
+	{
+		InstructionHandle handle = il.getStart(), end = il.getEnd();
+		
+		while (!(handle.equals(end))) 
+		{
+			Instruction inst = handle.getInstruction();
+			if (inst instanceof IINC) 
+			{
+				int index = ((LocalVariableInstruction) inst).getIndex();
+				InstructionHandle prev = handle.getPrev(), next;
+				
+				while (!(prev.getInstruction() instanceof LoadInstruction && 
+							((LocalVariableInstruction) prev.getInstruction()).getIndex() == index))
+				{
+					prev = prev.getPrev();
+				}
+				il.insert(prev, prev.getInstruction());
+				next = prev.getNext(); 
+				
+				while (!(next.getInstruction() instanceof ArithmeticInstruction)) 
+				{
+					next = next.getNext();
+				}
+				il.insert(next, next.getInstruction());
+			}
+			
+			handle = handle.getNext();
+		}
+		
 		return il;
 	}
 	
@@ -309,7 +348,15 @@ public class ConstantFolder
 	private InstructionList handler(InstructionHandle handle, InstructionList il) 
 	{
 		Instruction inst = handle.getInstruction();
-		if (inst instanceof IADD) {
+		
+		if (handle.getNext() != null && inst.equals(handle.getNext().getInstruction())) {
+		}
+		else if (handle.getPrev() != null && inst.equals(handle.getPrev().getInstruction())) {
+			il = removeHandle(handle, il);
+			System.out.println("IS EQUAL in handler");
+		}
+		
+		else if (inst instanceof IADD) {
 			return do_add(handle, il, 1);
 		} else if (inst instanceof LADD) {
 			return do_add(handle, il, 2);
@@ -398,9 +445,22 @@ public class ConstantFolder
 		return il;
 	}
 	
-	private InstructionList maintainLocals(InstructionHandle handle, InstructionList il){
+	private InstructionList maintainLocals(InstructionHandle handle, InstructionList il)
+	{
 		Instruction inst = handle.getInstruction();
-		if(inst instanceof StoreInstruction){
+		
+		/* if (handle.getNext() == null || handle.getPrev() == null) {
+			System.out.println("LOL");
+		}
+		
+		if (handle.getNext() != null && inst.equals(handle.getNext().getInstruction())) {
+		}
+		else if (handle.getPrev() != null && inst.equals(handle.getPrev().getInstruction())) {
+			il = removeHandle(handle, il);
+			System.out.println("IS EQUAL in maintain");
+		}
+		
+		else*/ if (inst instanceof StoreInstruction){
 			locals[Character.getNumericValue((inst.toString().charAt(7)))] = stack.pop();
 			//il = removeHandle(il, handle);
 		} else if(inst instanceof LoadInstruction && !(inst instanceof ALOAD)){
