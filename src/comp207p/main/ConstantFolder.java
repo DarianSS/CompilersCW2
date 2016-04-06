@@ -337,6 +337,8 @@ public class ConstantFolder
 		break;
 		case 'l': stack.push(stack.pop().longValue());
 		break;
+		default: stack.push(stack.pop().intValue());
+		break;
 		}
 		
 		il = removeHandle(il, handle);
