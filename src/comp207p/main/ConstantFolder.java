@@ -95,6 +95,11 @@ public class ConstantFolder
 		CPInstruction new_ldc;
 		Number ldc1 = stack.pop();
 		Number ldc2 = stack.pop();
+		if(ldc1 instanceof NullNumber || ldc2 instanceof NullNumber){
+			stack.push(ldc2);
+			stack.push(ldc1);
+			return il;
+		}
 		
 		if (type == 1) {
 			int result = ldc2.intValue() + ldc1.intValue();
@@ -169,6 +174,11 @@ public class ConstantFolder
 		CPInstruction new_ldc;
 		Number ldc1 = stack.pop();
 		Number ldc2 = stack.pop();
+		if(ldc1 instanceof NullNumber || ldc2 instanceof NullNumber){
+			stack.push(ldc2);
+			stack.push(ldc1);
+			return il;
+		}
 		
 		if (type == 1) {
 			int result = ldc2.intValue() - ldc1.intValue();
@@ -204,6 +214,11 @@ public class ConstantFolder
 		CPInstruction new_ldc;
 		Number ldc1 = stack.pop();
 		Number ldc2 = stack.pop();
+		if(ldc1 instanceof NullNumber || ldc2 instanceof NullNumber){
+			stack.push(ldc2);
+			stack.push(ldc1);
+			return il;
+		}
 		
 		if (type == 1) {
 			int result = ldc2.intValue() / ldc1.intValue();
@@ -239,6 +254,11 @@ public class ConstantFolder
 		CPInstruction new_ldc;
 		Number ldc1 = stack.pop();
 		Number ldc2 = stack.pop();
+		if(ldc1 instanceof NullNumber || ldc2 instanceof NullNumber){
+			stack.push(ldc2);
+			stack.push(ldc1);
+			return il;
+		}
 		
 		if (type == 1) {
 			int result = ldc2.intValue() % ldc1.intValue();
@@ -273,6 +293,10 @@ public class ConstantFolder
 		int index;
 		CPInstruction new_ldc;
 		Number ldc1 = stack.pop();
+		if(ldc1 instanceof NullNumber){
+			stack.push(ldc1);
+			return il;
+		}
 		
 		if (type == 1) {
 			int result = -ldc1.intValue();
