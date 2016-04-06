@@ -425,26 +425,26 @@ public class ConstantFolder
 	
 	private void ldcExterminator(InstructionList il) 
 	{
-	 		InstructionHandle handle = il.getStart().getNext(), end = il.getEnd();
-	 		do {
-	 			InstructionHandle previous = handle.getPrev();
-	 			InstructionHandle next = handle.getNext();
-	 			if ((handle.getInstruction() instanceof LDC || handle.getInstruction() instanceof LDC2_W) &&
-	 			 (previous.getInstruction() instanceof LDC || previous.getInstruction() instanceof LDC2_W) &&
-	 			 !(next.getInstruction() instanceof IfInstruction) && 
-	 			 !(next.getInstruction() instanceof DCMPG) &&
-	 			 !(next.getInstruction() instanceof DCMPL) &&
-	 			 !(next.getInstruction() instanceof FCMPG) &&
-	 			 !(next.getInstruction() instanceof FCMPL) &&
-	 			 !(next.getInstruction() instanceof LCMP)) {
-	 				
-	 				il = removeHandle(il, previous);
-	 				System.out.println("exterminated");
-	 			}
-	 			
-	 			handle = handle.getNext();
-	 		} while (handle != end); 
-	 	}
+		InstructionHandle handle = il.getStart().getNext(), end = il.getEnd();
+		do {
+			InstructionHandle previous = handle.getPrev();
+			InstructionHandle next = handle.getNext();
+			if ((handle.getInstruction() instanceof LDC || handle.getInstruction() instanceof LDC2_W) &&
+					(previous.getInstruction() instanceof LDC || previous.getInstruction() instanceof LDC2_W) &&
+					!(next.getInstruction() instanceof IfInstruction) && 
+					!(next.getInstruction() instanceof DCMPG) &&
+					!(next.getInstruction() instanceof DCMPL) &&
+					!(next.getInstruction() instanceof FCMPG) &&
+					!(next.getInstruction() instanceof FCMPL) &&
+					!(next.getInstruction() instanceof LCMP)) {
+
+				il = removeHandle(il, previous);
+				// System.out.println("exterminated");
+			}
+
+			handle = handle.getNext();
+		} while (handle != end); 
+	}
 	
 	public void write(String optimisedFilePath)
 	{
