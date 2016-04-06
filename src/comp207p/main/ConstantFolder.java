@@ -52,19 +52,14 @@ public class ConstantFolder
 			il = m.getInstructionList();
 			stack = new ArrayDeque<Number>();
 			locals = new Number[6];
-			il = foldingPreparator(il);
 			
 			for (InstructionHandle handle : il.getInstructionHandles()) 
-			{	
+			{
 				System.out.println(handle.getInstruction().getName());
-				
-				if (handle.getInstruction() instanceof IINC)
-					System.out.println("IIIIIIINC:" + ((IINC) handle.getInstruction()).getIndex());
-				
-				
 				il = handler(handle, il);
 				il = maintainLocals(handle, il);
 				il = maintainStack(handle, il);
+				System.out.println(il.toString());
 			}
 			
 			ldcExterminator(il);
@@ -80,7 +75,7 @@ public class ConstantFolder
 		this.optimized = gen.getJavaClass();
 	}
 
-	private InstructionList removeHandle(InstructionHandle handle, InstructionList il) {
+	private InstructionList removeHandle(InstructionList il, InstructionHandle handle) {
 		try {
 			il.delete(handle);
 		} catch (TargetLostException e) {
@@ -91,39 +86,6 @@ public class ConstantFolder
 	             targeters[j].updateTarget(targets[i], handle.getNext());
 	       }
 		}
-		return il;
-	}
-	
-	private InstructionList foldingPreparator(InstructionList il) 
-	{
-		InstructionHandle handle = il.getStart(), end = il.getEnd();
-		
-		while (!(handle.equals(end))) 
-		{
-			Instruction inst = handle.getInstruction();
-			if (inst instanceof IINC) 
-			{
-				int index = ((LocalVariableInstruction) inst).getIndex();
-				InstructionHandle prev = handle.getPrev(), next;
-				
-				while (!(prev.getInstruction() instanceof LoadInstruction && 
-							((LocalVariableInstruction) prev.getInstruction()).getIndex() == index))
-				{
-					prev = prev.getPrev();
-				}
-				il.insert(prev, prev.getInstruction());
-				next = prev.getNext(); 
-				
-				while (!(next.getInstruction() instanceof ArithmeticInstruction)) 
-				{
-					next = next.getNext();
-				}
-				il.insert(next, next.getInstruction());
-			}
-			
-			handle = handle.getNext();
-		}
-		
 		return il;
 	}
 	
@@ -156,14 +118,13 @@ public class ConstantFolder
 			stack.push(result);
 		}
 		
-		il.insert(handle, new_ldc);
+		il = insert(il, handle, new_ldc);
 		System.out.println("inserted");
-		il = removeHandle(handle, il);
+		//il = removeHandle(il, handle);
 		return il;
 	}
 	
 	private InstructionList do_mul(InstructionHandle handle, InstructionList il, int type){
-		
 		int index;	
 		CPInstruction new_ldc;
 		Number ldc1 = stack.pop();
@@ -191,9 +152,9 @@ public class ConstantFolder
 			stack.push(result);
 		}
 		
-		il.insert(handle, new_ldc);
+		il = insert(il, handle, new_ldc);
 		System.out.println("inserted");
-		il = removeHandle(handle, il);
+		//il = removeHandle(il, handle);
 		return il;
 	}
 
@@ -226,9 +187,9 @@ public class ConstantFolder
 			stack.push(result);
 		}
 		
-		il.insert(handle, new_ldc);
+		il = insert(il, handle, new_ldc);
 		System.out.println("inserted");
-		il = removeHandle(handle, il);
+		//il = removeHandle(il, handle);
 		return il;
 	}
 	
@@ -261,9 +222,9 @@ public class ConstantFolder
 			stack.push(result);
 		}
 		
-		il.insert(handle, new_ldc);
+		il = insert(il, handle, new_ldc);
 		System.out.println("inserted");
-		il = removeHandle(handle, il);
+		//il = removeHandle(il, handle);
 		return il;
 	}
 	
@@ -296,9 +257,9 @@ public class ConstantFolder
 			stack.push(result);
 		}
 		
-		il.insert(handle, new_ldc);
+		il = insert(il, handle, new_ldc);
 		System.out.println("inserted");
-		il = removeHandle(handle, il);
+		//il = removeHandle(il, handle);
 		return il;
 	}
 	
@@ -330,9 +291,9 @@ public class ConstantFolder
 			stack.push(result);
 		}
 		
-		il.insert(handle, new_ldc);
+		il = insert(il, handle, new_ldc);
 		System.out.println("inserted");
-		il = removeHandle(handle, il);
+		//il = removeHandle(il, handle);
 		return il;
 	}
 	
@@ -340,7 +301,7 @@ public class ConstantFolder
 		Integer in = stack.pop().intValue();
 		Double d = in.doubleValue();
 		stack.push(d);
-		il = removeHandle(handle, il);
+		il = removeHandle(il, handle);
 		
 		return il;
 	}
@@ -348,15 +309,7 @@ public class ConstantFolder
 	private InstructionList handler(InstructionHandle handle, InstructionList il) 
 	{
 		Instruction inst = handle.getInstruction();
-		
-		if (handle.getNext() != null && inst.equals(handle.getNext().getInstruction())) {
-		}
-		else if (handle.getPrev() != null && inst.equals(handle.getPrev().getInstruction())) {
-			il = removeHandle(handle, il);
-			System.out.println("IS EQUAL in handler");
-		}
-		
-		else if (inst instanceof IADD) {
+		if (inst instanceof IADD) {
 			return do_add(handle, il, 1);
 		} else if (inst instanceof LADD) {
 			return do_add(handle, il, 2);
@@ -410,6 +363,41 @@ public class ConstantFolder
 		return il;
 	}
 	
+	private InstructionList insert(InstructionList il, InstructionHandle old, Instruction to){
+		if(everIINC(old, il)){
+			return il;
+		}
+		InstructionHandle new_handle = il.insert(old, to);
+		for(InstructionHandle handle : il.getInstructionHandles()){
+			if(handle.getInstruction() instanceof BranchInstruction){
+				BranchInstruction inst = (BranchInstruction)handle.getInstruction();
+				if(inst.getTarget() == old){
+					inst.setTarget(new_handle);
+				}
+			}
+		}
+		il = removeHandle(il, old);
+		return il;
+	}
+	
+	private boolean everIINC(InstructionHandle handletocheck, InstructionList il){
+		if(!(handletocheck.getInstruction() instanceof LocalVariableInstruction)){
+			return false;
+		}
+		for(InstructionHandle handle : il.getInstructionHandles()){
+			if(handle == handletocheck){
+				continue;
+			}
+			if(handle.getInstruction() instanceof IINC){
+				IINC iinc = (IINC) handle.getInstruction();
+				if(iinc.getIndex() == ((LocalVariableInstruction)handletocheck.getInstruction()).getIndex()){
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
 	private InstructionList maintainStack(InstructionHandle handle, InstructionList il){
 		Instruction inst = handle.getInstruction();
 		if(inst instanceof ICONST){
@@ -445,40 +433,27 @@ public class ConstantFolder
 		return il;
 	}
 	
-	private InstructionList maintainLocals(InstructionHandle handle, InstructionList il)
-	{
+	private InstructionList maintainLocals(InstructionHandle handle, InstructionList il){
 		Instruction inst = handle.getInstruction();
-		
-		/* if (handle.getNext() == null || handle.getPrev() == null) {
-			System.out.println("LOL");
-		}
-		
-		if (handle.getNext() != null && inst.equals(handle.getNext().getInstruction())) {
-		}
-		else if (handle.getPrev() != null && inst.equals(handle.getPrev().getInstruction())) {
-			il = removeHandle(handle, il);
-			System.out.println("IS EQUAL in maintain");
-		}
-		
-		else*/ if (inst instanceof StoreInstruction){
-			locals[Character.getNumericValue((inst.toString().charAt(7)))] = stack.pop();
+		if(inst instanceof StoreInstruction){
+			locals[((StoreInstruction) inst).getIndex()] = stack.pop();
 			//il = removeHandle(il, handle);
 		} else if(inst instanceof LoadInstruction && !(inst instanceof ALOAD)){
-			stack.push(locals[Character.getNumericValue(inst.toString().charAt(6))]);
+			stack.push(locals[((LoadInstruction) inst).getIndex()]);
 			if(stack.peek() instanceof Integer){
 				int index = cpgen.addInteger(stack.peek().intValue());
-				il.insert(handle, new LDC(index));
+				il = insert(il, handle, new LDC(index));
 			} else if(stack.peek() instanceof Long){
 				int index = cpgen.addLong(stack.peek().longValue());
-				il.insert(handle, new LDC2_W(index));
+				il = insert(il, handle, new LDC2_W(index));
 			} else if(stack.peek() instanceof Double){
 				int index = cpgen.addDouble(stack.peek().doubleValue());
-				il.insert(handle, new LDC2_W(index));
+				il = insert(il, handle, new LDC2_W(index));
 			} else if(stack.peek() instanceof Float){
 				int index = cpgen.addFloat(stack.peek().floatValue());
-				il.insert(handle, new LDC(index));
+				il = insert(il, handle, new LDC(index));
 			}
-			il = removeHandle(handle, il);
+			//il = removeHandle(il, handle);
 		}
 		return il;
 	}
@@ -498,7 +473,7 @@ public class ConstantFolder
 					!(next.getInstruction() instanceof FCMPL) &&
 					!(next.getInstruction() instanceof LCMP)) {
 
-				il = removeHandle(previous, il);
+				il = removeHandle(il, previous);
 				// System.out.println("exterminated");
 			}
 
