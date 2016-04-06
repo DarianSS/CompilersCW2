@@ -57,12 +57,11 @@ public class ConstantFolder
 			{	
 				System.out.println(handle.getInstruction().getName());
 				il = handler(handle, il);
-				
 				il = maintainLocals(handle, il);
 				il = maintainStack(handle, il);
 			}
 			
-			ldcExterminator(il);
+			// ldcExterminator(il);
 			System.out.println(il.toString());
 			il.setPositions(true);
 			m.setMaxStack();
@@ -89,31 +88,30 @@ public class ConstantFolder
 		return il;
 	}
 	
-	private InstructionList do_operation(InstructionHandle handle, InstructionList il, int type, Operation Op){
+	private InstructionList do_add(InstructionHandle handle, InstructionList il, int type){
 		
 		int index;	
 		CPInstruction new_ldc;
 		Number ldc1 = stack.pop();
 		Number ldc2 = stack.pop();
 		
-		if (type == 1) 
-		{
-			int result = (Op.op(ldc2.intValue(), ldc1.intValue())).intValue();
+		if (type == 1) {
+			int result = ldc2.intValue() + ldc1.intValue();
 			index = cpgen.addInteger(result);
 			new_ldc = new LDC(index);
 			stack.push(result);
 		} else if (type == 2) {
-			long result = (Op.op(ldc1.longValue(), ldc2.longValue())).longValue();
+			long result = ldc2.longValue() + ldc1.longValue();
 			index = cpgen.addLong(result);
 			new_ldc = new LDC2_W(index);
 			stack.push(result);
 		} else if (type == 3) {
-			float result = (Op.op(ldc1.floatValue(), ldc2.floatValue())).floatValue();
+			float result = ldc2.floatValue() + ldc1.floatValue();
 			index = cpgen.addFloat(result);
 			new_ldc = new LDC(index);
 			stack.push(result);
 		} else {
-			double result = (Op.op(ldc1.doubleValue(), ldc2.doubleValue())).doubleValue();
+			double result = ldc2.doubleValue() + ldc1.doubleValue();
 			index = cpgen.addDouble(result);
 			new_ldc = new LDC2_W(index);
 			stack.push(result);
@@ -125,7 +123,145 @@ public class ConstantFolder
 		return il;
 	}
 	
+	private InstructionList do_mul(InstructionHandle handle, InstructionList il, int type){
+		
+		int index;	
+		CPInstruction new_ldc;
+		Number ldc1 = stack.pop();
+		Number ldc2 = stack.pop();
+		
+		if (type == 1) {
+			int result = ldc2.intValue() * ldc1.intValue();
+			index = cpgen.addInteger(result);
+			new_ldc = new LDC(index);
+			stack.push(result);
+		} else if (type == 2) {
+			long result = ldc2.longValue() * ldc1.longValue();
+			index = cpgen.addLong(result);
+			new_ldc = new LDC2_W(index);
+			stack.push(result);
+		} else if (type == 3) {
+			float result = ldc2.floatValue() * ldc1.floatValue();
+			index = cpgen.addFloat(result);
+			new_ldc = new LDC(index);
+			stack.push(result);
+		} else {
+			double result = ldc2.doubleValue() * ldc1.doubleValue();
+			index = cpgen.addDouble(result);
+			new_ldc = new LDC2_W(index);
+			stack.push(result);
+		}
+		
+		il.insert(handle, new_ldc);
+		System.out.println("inserted");
+		il = removeHandle(il, handle);
+		return il;
+	}
+
+	private InstructionList do_sub(InstructionHandle handle, InstructionList il, int type){
+		
+		int index;	
+		CPInstruction new_ldc;
+		Number ldc1 = stack.pop();
+		Number ldc2 = stack.pop();
+		
+		if (type == 1) {
+			int result = ldc2.intValue() - ldc1.intValue();
+			index = cpgen.addInteger(result);
+			new_ldc = new LDC(index);
+			stack.push(result);
+		} else if (type == 2) {
+			long result = ldc2.longValue() - ldc1.longValue();
+			index = cpgen.addLong(result);
+			new_ldc = new LDC2_W(index);
+			stack.push(result);
+		} else if (type == 3) {
+			float result = ldc2.floatValue() - ldc1.floatValue();
+			index = cpgen.addFloat(result);
+			new_ldc = new LDC(index);
+			stack.push(result);
+		} else {
+			double result = ldc2.doubleValue() - ldc1.doubleValue();
+			index = cpgen.addDouble(result);
+			new_ldc = new LDC2_W(index);
+			stack.push(result);
+		}
+		
+		il.insert(handle, new_ldc);
+		System.out.println("inserted");
+		il = removeHandle(il, handle);
+		return il;
+	}
 	
+	private InstructionList do_div(InstructionHandle handle, InstructionList il, int type){
+		
+		int index;	
+		CPInstruction new_ldc;
+		Number ldc1 = stack.pop();
+		Number ldc2 = stack.pop();
+		
+		if (type == 1) {
+			int result = ldc2.intValue() / ldc1.intValue();
+			index = cpgen.addInteger(result);
+			new_ldc = new LDC(index);
+			stack.push(result);
+		} else if (type == 2) {
+			long result = ldc2.longValue() / ldc1.longValue();
+			index = cpgen.addLong(result);
+			new_ldc = new LDC2_W(index);
+			stack.push(result);
+		} else if (type == 3) {
+			float result = ldc2.floatValue() / ldc1.floatValue();
+			index = cpgen.addFloat(result);
+			new_ldc = new LDC(index);
+			stack.push(result);
+		} else {
+			double result = ldc2.doubleValue() / ldc1.doubleValue();
+			index = cpgen.addDouble(result);
+			new_ldc = new LDC2_W(index);
+			stack.push(result);
+		}
+		
+		il.insert(handle, new_ldc);
+		System.out.println("inserted");
+		il = removeHandle(il, handle);
+		return il;
+	}
+	
+	private InstructionList do_rem(InstructionHandle handle, InstructionList il, int type){
+		
+		int index;	
+		CPInstruction new_ldc;
+		Number ldc1 = stack.pop();
+		Number ldc2 = stack.pop();
+		
+		if (type == 1) {
+			int result = ldc2.intValue() % ldc1.intValue();
+			index = cpgen.addInteger(result);
+			new_ldc = new LDC(index);
+			stack.push(result);
+		} else if (type == 2) {
+			long result = ldc2.longValue() % ldc1.longValue();
+			index = cpgen.addLong(result);
+			new_ldc = new LDC2_W(index);
+			stack.push(result);
+		} else if (type == 3) {
+			float result = ldc2.floatValue() % ldc1.floatValue();
+			index = cpgen.addFloat(result);
+			new_ldc = new LDC(index);
+			stack.push(result);
+		} else {
+			double result = ldc2.doubleValue() % ldc1.doubleValue();
+			index = cpgen.addDouble(result);
+			new_ldc = new LDC2_W(index);
+			stack.push(result);
+		}
+		
+		il.insert(handle, new_ldc);
+		System.out.println("inserted");
+		il = removeHandle(il, handle);
+		return il;
+	}
 	
 	private InstructionList do_neg(InstructionHandle handle, InstructionList il, int type){
 
@@ -174,45 +310,45 @@ public class ConstantFolder
 	{
 		Instruction inst = handle.getInstruction();
 		if (inst instanceof IADD) {
-			return do_operation(handle, il, 1, (x, y) -> x.intValue() + y.intValue());
+			return do_add(handle, il, 1);
 		} else if (inst instanceof LADD) {
-			return do_operation(handle, il, 2, (x, y) -> x.longValue() + y.longValue());
+			return do_add(handle, il, 2);
 		} else if (inst instanceof FADD) {
-			return do_operation(handle, il, 3, (x, y) -> x.floatValue() + y.floatValue());
+			return do_add(handle, il, 3);
 		} else if (inst instanceof DADD) {
-			return do_operation(handle, il, 4, (x, y) -> x.doubleValue() + y.doubleValue());
+			return do_add(handle, il, 4);
 		} else if (inst instanceof IMUL) {
-			return do_operation(handle, il, 1, (x, y) -> x.intValue() * y.intValue());
+			return do_mul(handle, il, 1);
 		} else if (inst instanceof LMUL) {
-			return do_operation(handle, il, 2, (x, y) -> x.longValue() * y.longValue());
+			return do_mul(handle, il, 2);
 		} else if (inst instanceof FMUL) {
-			return do_operation(handle, il, 3, (x, y) -> x.floatValue() * y.floatValue());
+			return do_mul(handle, il, 3);
 		} else if (inst instanceof DMUL) {
-			return do_operation(handle, il, 4, (x, y) -> x.doubleValue() * y.doubleValue());
+			return do_mul(handle, il, 4);
 		} else if (inst instanceof ISUB) {
-			return do_operation(handle, il, 1, (x, y) -> x.intValue() - y.intValue());
+			return do_sub(handle, il, 1);
 		} else if (inst instanceof LSUB) {
-			return do_operation(handle, il, 2, (x, y) -> x.longValue() - y.longValue());
+			return do_sub(handle, il, 2);
 		} else if (inst instanceof FSUB) {
-			return do_operation(handle, il, 3, (x, y) -> x.floatValue() - y.floatValue());
+			return do_sub(handle, il, 3);
 		} else if (inst instanceof DSUB) {
-			return do_operation(handle, il, 4, (x, y) -> x.doubleValue() - y.doubleValue());
+			return do_sub(handle, il, 4);
 		} else if (inst instanceof IDIV) {
-			return do_operation(handle, il, 1, (x, y) -> x.intValue() / y.intValue());
+			return do_div(handle, il, 1);
 		} else if (inst instanceof LDIV) {
-			return do_operation(handle, il, 2, (x, y) -> x.longValue() / y.longValue());
+			return do_div(handle, il, 2);
 		} else if (inst instanceof FDIV) {
-			return do_operation(handle, il, 3, (x, y) -> x.floatValue() / y.floatValue());
+			return do_div(handle, il, 3);
 		} else if (inst instanceof DDIV) {
-			return do_operation(handle, il, 4, (x, y) -> x.doubleValue() / y.doubleValue());
+			return do_div(handle, il, 4);
 		} else if (inst instanceof IREM) {
-			return do_operation(handle, il, 1, (x, y) -> x.intValue() % y.intValue());
+			return do_rem(handle, il, 1);
 		} else if (inst instanceof LREM) {
-			return do_operation(handle, il, 2, (x, y) -> x.longValue() % y.longValue());
+			return do_rem(handle, il, 2);
 		} else if (inst instanceof FREM) {
-			return do_operation(handle, il, 3, (x, y) -> x.floatValue() % y.floatValue());
+			return do_rem(handle, il, 3);
 		} else if (inst instanceof DREM) {
-			return do_operation(handle, il, 4, (x, y) -> x.doubleValue() % y.doubleValue());
+			return do_rem(handle, il, 4);
 		} else if (inst instanceof INEG) {
 			return do_neg(handle, il, 1);
 		} else if (inst instanceof LNEG) {
@@ -296,9 +432,11 @@ public class ConstantFolder
 	 			if ((handle.getInstruction() instanceof LDC || handle.getInstruction() instanceof LDC2_W) &&
 	 			 (previous.getInstruction() instanceof LDC || previous.getInstruction() instanceof LDC2_W) &&
 	 			 !(next.getInstruction() instanceof IfInstruction)) {
+	 				
 	 				il = removeHandle(il, previous);
 	 				System.out.println("exterminated");
 	 			}
+	 			
 	 			handle = handle.getNext();
 	 		} while (handle != end); 
 	 	}
