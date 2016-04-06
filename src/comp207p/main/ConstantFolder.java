@@ -326,10 +326,19 @@ public class ConstantFolder
 		return il;
 	}
 	
-	private InstructionList do_i2d(InstructionHandle handle, InstructionList il){
-		Integer in = stack.pop().intValue();
-		Double d = in.doubleValue();
-		stack.push(d);
+	private InstructionList do_convert(InstructionHandle handle, InstructionList il){
+		char c = handle.getInstruction().toString().charAt(2);
+		switch(c){
+		case 'd': stack.push(stack.pop().doubleValue());
+		break;
+		case 'i': stack.push(stack.pop().intValue());
+		break;
+		case 'f': stack.push(stack.pop().floatValue());
+		break;
+		case 'l': stack.push(stack.pop().longValue());
+		break;
+		}
+		
 		il = removeHandle(il, handle);
 		
 		return il;
@@ -386,8 +395,8 @@ public class ConstantFolder
 			return do_neg(handle, il, 3);
 		} else if (inst instanceof DNEG) {
 			return do_neg(handle, il, 4);
-		} else if (inst instanceof I2D){
-			return do_i2d(handle, il);
+		} else if(inst instanceof ConversionInstruction){
+			return do_convert(handle, il);
 		}
 		return il;
 	}
