@@ -129,6 +129,11 @@ public class ConstantFolder
 		CPInstruction new_ldc;
 		Number ldc1 = stack.pop();
 		Number ldc2 = stack.pop();
+		if(ldc1 instanceof NullNumber || ldc2 instanceof NullNumber){
+			stack.push(ldc2);
+			stack.push(ldc1);
+			return il;
+		}
 		
 		if (type == 1) {
 			int result = ldc2.intValue() * ldc1.intValue();
@@ -439,6 +444,10 @@ public class ConstantFolder
 			locals[((StoreInstruction) inst).getIndex()] = stack.pop();
 			//il = removeHandle(il, handle);
 		} else if(inst instanceof LoadInstruction && !(inst instanceof ALOAD)){
+			if(everIINC(handle, il)){
+				stack.push(new NullNumber());
+				return il;
+			}
 			stack.push(locals[((LoadInstruction) inst).getIndex()]);
 			if(stack.peek() instanceof Integer){
 				int index = cpgen.addInteger(stack.peek().intValue());
