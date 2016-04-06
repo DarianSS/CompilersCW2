@@ -74,7 +74,7 @@ public class ConstantFolder
 		this.optimized = gen.getJavaClass();
 	}
 
-	private InstructionList removeHandle(InstructionList il, InstructionHandle handle) {
+	private InstructionList removeHandle(InstructionHandle handle, InstructionList il) {
 		try {
 			il.delete(handle);
 		} catch (TargetLostException e) {
@@ -119,7 +119,7 @@ public class ConstantFolder
 		
 		il.insert(handle, new_ldc);
 		System.out.println("inserted");
-		il = removeHandle(il, handle);
+		il = removeHandle(handle, il);
 		return il;
 	}
 	
@@ -154,7 +154,7 @@ public class ConstantFolder
 		
 		il.insert(handle, new_ldc);
 		System.out.println("inserted");
-		il = removeHandle(il, handle);
+		il = removeHandle(handle, il);
 		return il;
 	}
 
@@ -189,7 +189,7 @@ public class ConstantFolder
 		
 		il.insert(handle, new_ldc);
 		System.out.println("inserted");
-		il = removeHandle(il, handle);
+		il = removeHandle(handle, il);
 		return il;
 	}
 	
@@ -224,7 +224,7 @@ public class ConstantFolder
 		
 		il.insert(handle, new_ldc);
 		System.out.println("inserted");
-		il = removeHandle(il, handle);
+		il = removeHandle(handle, il);
 		return il;
 	}
 	
@@ -259,7 +259,7 @@ public class ConstantFolder
 		
 		il.insert(handle, new_ldc);
 		System.out.println("inserted");
-		il = removeHandle(il, handle);
+		il = removeHandle(handle, il);
 		return il;
 	}
 	
@@ -293,7 +293,7 @@ public class ConstantFolder
 		
 		il.insert(handle, new_ldc);
 		System.out.println("inserted");
-		il = removeHandle(il, handle);
+		il = removeHandle(handle, il);
 		return il;
 	}
 	
@@ -301,7 +301,7 @@ public class ConstantFolder
 		Integer in = stack.pop().intValue();
 		Double d = in.doubleValue();
 		stack.push(d);
-		il = removeHandle(il, handle);
+		il = removeHandle(handle, il);
 		
 		return il;
 	}
@@ -418,7 +418,7 @@ public class ConstantFolder
 				int index = cpgen.addFloat(stack.peek().floatValue());
 				il.insert(handle, new LDC(index));
 			}
-			il = removeHandle(il, handle);
+			il = removeHandle(handle, il);
 		}
 		return il;
 	}
@@ -438,7 +438,7 @@ public class ConstantFolder
 					!(next.getInstruction() instanceof FCMPL) &&
 					!(next.getInstruction() instanceof LCMP)) {
 
-				il = removeHandle(il, previous);
+				il = removeHandle(previous, il);
 				// System.out.println("exterminated");
 			}
 
