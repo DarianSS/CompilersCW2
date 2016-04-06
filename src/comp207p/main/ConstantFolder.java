@@ -61,7 +61,7 @@ public class ConstantFolder
 				il = maintainStack(handle, il);
 			}
 			
-			// ldcExterminator(il);
+			ldcExterminator(il);
 			System.out.println(il.toString());
 			il.setPositions(true);
 			m.setMaxStack();
@@ -431,7 +431,12 @@ public class ConstantFolder
 	 			InstructionHandle next = handle.getNext();
 	 			if ((handle.getInstruction() instanceof LDC || handle.getInstruction() instanceof LDC2_W) &&
 	 			 (previous.getInstruction() instanceof LDC || previous.getInstruction() instanceof LDC2_W) &&
-	 			 !(next.getInstruction() instanceof IfInstruction)) {
+	 			 !(next.getInstruction() instanceof IfInstruction) && 
+	 			 !(next.getInstruction() instanceof DCMPG) &&
+	 			 !(next.getInstruction() instanceof DCMPL) &&
+	 			 !(next.getInstruction() instanceof FCMPG) &&
+	 			 !(next.getInstruction() instanceof FCMPL) &&
+	 			 !(next.getInstruction() instanceof LCMP)) {
 	 				
 	 				il = removeHandle(il, previous);
 	 				System.out.println("exterminated");
