@@ -4,15 +4,9 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.Deque;
-import java.util.Iterator;
-
 import org.apache.bcel.classfile.*;
 import org.apache.bcel.generic.*;
-import org.apache.bcel.Repository;
-import org.apache.bcel.util.InstructionFinder;
-import org.apache.bcel.verifier.structurals.OperandStack;
 
 
 public class ConstantFolder
@@ -51,19 +45,19 @@ public class ConstantFolder
 			MethodGen m = new MethodGen(method, gen.getClassName(), cpgen);
 			il = m.getInstructionList();
 			stack = new ArrayDeque<Number>();
-			locals = new Number[6];
+			locals = new Number[15];
 			
 			for (InstructionHandle handle : il.getInstructionHandles()) 
 			{
-				System.out.println(handle.getInstruction().getName());
+				//System.out.println(handle.getInstruction().getName()); //For debug
 				il = handler(handle, il);
+				maintainStack(handle, il);
 				il = maintainLocals(handle, il);
-				il = maintainStack(handle, il);
-				System.out.println(il.toString());
+				//System.out.println(il.toString()); //For debug
 			}
 			
 			ldcExterminator(il);
-			System.out.println(il.toString());
+			//System.out.println(il.toString()); //For debug
 			il.setPositions(true);
 			m.setMaxStack();
 			m.setMaxLocals();
@@ -89,240 +83,249 @@ public class ConstantFolder
 		return il;
 	}
 	
-	private InstructionList do_add(InstructionHandle handle, InstructionList il, int type){
+private InstructionList do_add(InstructionHandle handle, InstructionList il){
 		
 		int index;	
-		CPInstruction new_ldc;
 		Number ldc1 = stack.pop();
 		Number ldc2 = stack.pop();
+		char c = handle.getInstruction().getName().charAt(0); 
 		if(ldc1 instanceof NullNumber || ldc2 instanceof NullNumber){
 			stack.push(ldc2);
 			stack.push(ldc1);
 			return il;
 		}
 		
-		if (type == 1) {
+		switch (c) {
+		case 'i' :
 			int result = ldc2.intValue() + ldc1.intValue();
 			index = cpgen.addInteger(result);
-			new_ldc = new LDC(index);
+			il = insert(il, handle, new LDC(index));
 			stack.push(result);
-		} else if (type == 2) {
-			long result = ldc2.longValue() + ldc1.longValue();
-			index = cpgen.addLong(result);
-			new_ldc = new LDC2_W(index);
-			stack.push(result);
-		} else if (type == 3) {
-			float result = ldc2.floatValue() + ldc1.floatValue();
-			index = cpgen.addFloat(result);
-			new_ldc = new LDC(index);
-			stack.push(result);
-		} else {
-			double result = ldc2.doubleValue() + ldc1.doubleValue();
-			index = cpgen.addDouble(result);
-			new_ldc = new LDC2_W(index);
-			stack.push(result);
+			break;
+		case 'l' :
+			long resultL = ldc2.longValue() + ldc1.longValue();
+			index = cpgen.addLong(resultL);
+			il = insert(il, handle, new LDC2_W(index));
+			stack.push(resultL);
+			break;
+		case 'f' :
+			float resultF = ldc2.floatValue() + ldc1.floatValue();
+			index = cpgen.addFloat(resultF);
+			il = insert(il, handle, new LDC(index));
+			stack.push(resultF);
+			break;
+		case 'd' :
+			double resultD = ldc2.doubleValue() + ldc1.doubleValue();
+			index = cpgen.addDouble(resultD);
+			il = insert(il, handle, new LDC2_W(index));
+			stack.push(resultD);
+			break;
 		}
 		
-		il = insert(il, handle, new_ldc);
-		System.out.println("inserted");
-		//il = removeHandle(il, handle);
 		return il;
 	}
 	
-	private InstructionList do_mul(InstructionHandle handle, InstructionList il, int type){
+	private InstructionList do_mul(InstructionHandle handle, InstructionList il){
+		
 		int index;	
-		CPInstruction new_ldc;
 		Number ldc1 = stack.pop();
 		Number ldc2 = stack.pop();
+		char c = handle.getInstruction().getName().charAt(0); 
 		if(ldc1 instanceof NullNumber || ldc2 instanceof NullNumber){
 			stack.push(ldc2);
 			stack.push(ldc1);
 			return il;
 		}
 		
-		if (type == 1) {
+		switch (c) {
+		case 'i' :
 			int result = ldc2.intValue() * ldc1.intValue();
 			index = cpgen.addInteger(result);
-			new_ldc = new LDC(index);
+			il = insert(il, handle, new LDC(index));
 			stack.push(result);
-		} else if (type == 2) {
-			long result = ldc2.longValue() * ldc1.longValue();
-			index = cpgen.addLong(result);
-			new_ldc = new LDC2_W(index);
-			stack.push(result);
-		} else if (type == 3) {
-			float result = ldc2.floatValue() * ldc1.floatValue();
-			index = cpgen.addFloat(result);
-			new_ldc = new LDC(index);
-			stack.push(result);
-		} else {
-			double result = ldc2.doubleValue() * ldc1.doubleValue();
-			index = cpgen.addDouble(result);
-			new_ldc = new LDC2_W(index);
-			stack.push(result);
+			break;
+		case 'l' :
+			long resultL = ldc2.longValue() * ldc1.longValue();
+			index = cpgen.addLong(resultL);
+			il = insert(il, handle, new LDC2_W(index));
+			stack.push(resultL);
+			break;
+		case 'f' :
+			float resultF = ldc2.floatValue() * ldc1.floatValue();
+			index = cpgen.addFloat(resultF);
+			il = insert(il, handle, new LDC(index));
+			stack.push(resultF);
+			break;
+		case 'd' :
+			double resultD = ldc2.doubleValue() * ldc1.doubleValue();
+			index = cpgen.addDouble(resultD);
+			il = insert(il, handle, new LDC2_W(index));
+			stack.push(resultD);
+			break;
 		}
 		
-		il = insert(il, handle, new_ldc);
-		System.out.println("inserted");
-		//il = removeHandle(il, handle);
 		return il;
 	}
 
-	private InstructionList do_sub(InstructionHandle handle, InstructionList il, int type){
+	private InstructionList do_sub(InstructionHandle handle, InstructionList il){
 		
 		int index;	
-		CPInstruction new_ldc;
 		Number ldc1 = stack.pop();
 		Number ldc2 = stack.pop();
+		char c = handle.getInstruction().getName().charAt(0); 
 		if(ldc1 instanceof NullNumber || ldc2 instanceof NullNumber){
 			stack.push(ldc2);
 			stack.push(ldc1);
 			return il;
 		}
 		
-		if (type == 1) {
+		switch (c) {
+		case 'i' :
 			int result = ldc2.intValue() - ldc1.intValue();
 			index = cpgen.addInteger(result);
-			new_ldc = new LDC(index);
+			il = insert(il, handle, new LDC(index));
 			stack.push(result);
-		} else if (type == 2) {
-			long result = ldc2.longValue() - ldc1.longValue();
-			index = cpgen.addLong(result);
-			new_ldc = new LDC2_W(index);
-			stack.push(result);
-		} else if (type == 3) {
-			float result = ldc2.floatValue() - ldc1.floatValue();
-			index = cpgen.addFloat(result);
-			new_ldc = new LDC(index);
-			stack.push(result);
-		} else {
-			double result = ldc2.doubleValue() - ldc1.doubleValue();
-			index = cpgen.addDouble(result);
-			new_ldc = new LDC2_W(index);
-			stack.push(result);
+			break;
+		case 'l' :
+			long resultL = ldc2.longValue() - ldc1.longValue();
+			index = cpgen.addLong(resultL);
+			il = insert(il, handle, new LDC2_W(index));
+			stack.push(resultL);
+			break;
+		case 'f' :
+			float resultF = ldc2.floatValue() - ldc1.floatValue();
+			index = cpgen.addFloat(resultF);
+			il = insert(il, handle, new LDC(index));
+			stack.push(resultF);
+			break;
+		case 'd' :
+			double resultD = ldc2.doubleValue() - ldc1.doubleValue();
+			index = cpgen.addDouble(resultD);
+			il = insert(il, handle, new LDC2_W(index));
+			stack.push(resultD);
+			break;
 		}
-		
-		il = insert(il, handle, new_ldc);
-		System.out.println("inserted");
-		//il = removeHandle(il, handle);
+
 		return il;
 	}
 	
-	private InstructionList do_div(InstructionHandle handle, InstructionList il, int type){
+	private InstructionList do_div(InstructionHandle handle, InstructionList il){
 		
 		int index;	
-		CPInstruction new_ldc;
 		Number ldc1 = stack.pop();
 		Number ldc2 = stack.pop();
+		char c = handle.getInstruction().getName().charAt(0); 
 		if(ldc1 instanceof NullNumber || ldc2 instanceof NullNumber){
 			stack.push(ldc2);
 			stack.push(ldc1);
 			return il;
 		}
 		
-		if (type == 1) {
+		switch (c) {
+		case 'i' :
 			int result = ldc2.intValue() / ldc1.intValue();
 			index = cpgen.addInteger(result);
-			new_ldc = new LDC(index);
+			il = insert(il, handle, new LDC(index));
 			stack.push(result);
-		} else if (type == 2) {
-			long result = ldc2.longValue() / ldc1.longValue();
-			index = cpgen.addLong(result);
-			new_ldc = new LDC2_W(index);
-			stack.push(result);
-		} else if (type == 3) {
-			float result = ldc2.floatValue() / ldc1.floatValue();
-			index = cpgen.addFloat(result);
-			new_ldc = new LDC(index);
-			stack.push(result);
-		} else {
-			double result = ldc2.doubleValue() / ldc1.doubleValue();
-			index = cpgen.addDouble(result);
-			new_ldc = new LDC2_W(index);
-			stack.push(result);
+			break;
+		case 'l' :
+			long resultL = ldc2.longValue() / ldc1.longValue();
+			index = cpgen.addLong(resultL);
+			il = insert(il, handle, new LDC2_W(index));
+			stack.push(resultL);
+			break;
+		case 'f' :
+			float resultF = ldc2.floatValue() / ldc1.floatValue();
+			index = cpgen.addFloat(resultF);
+			il = insert(il, handle, new LDC(index));
+			stack.push(resultF);
+			break;
+		case 'd' :
+			double resultD = ldc2.doubleValue() / ldc1.doubleValue();
+			index = cpgen.addDouble(resultD);
+			il = insert(il, handle, new LDC2_W(index));
+			stack.push(resultD);
+			break;
 		}
 		
-		il = insert(il, handle, new_ldc);
-		System.out.println("inserted");
-		//il = removeHandle(il, handle);
 		return il;
 	}
 	
-	private InstructionList do_rem(InstructionHandle handle, InstructionList il, int type){
+	private InstructionList do_rem(InstructionHandle handle, InstructionList il){
 		
 		int index;	
-		CPInstruction new_ldc;
 		Number ldc1 = stack.pop();
 		Number ldc2 = stack.pop();
+		char c = handle.getInstruction().getName().charAt(0); 
 		if(ldc1 instanceof NullNumber || ldc2 instanceof NullNumber){
 			stack.push(ldc2);
 			stack.push(ldc1);
 			return il;
 		}
 		
-		if (type == 1) {
+		switch (c) {
+		case 'i' :
 			int result = ldc2.intValue() % ldc1.intValue();
 			index = cpgen.addInteger(result);
-			new_ldc = new LDC(index);
+			il = insert(il, handle, new LDC(index));
 			stack.push(result);
-		} else if (type == 2) {
-			long result = ldc2.longValue() % ldc1.longValue();
-			index = cpgen.addLong(result);
-			new_ldc = new LDC2_W(index);
-			stack.push(result);
-		} else if (type == 3) {
-			float result = ldc2.floatValue() % ldc1.floatValue();
-			index = cpgen.addFloat(result);
-			new_ldc = new LDC(index);
-			stack.push(result);
-		} else {
-			double result = ldc2.doubleValue() % ldc1.doubleValue();
-			index = cpgen.addDouble(result);
-			new_ldc = new LDC2_W(index);
-			stack.push(result);
+			break;
+		case 'l' :
+			long resultL = ldc2.longValue() % ldc1.longValue();
+			index = cpgen.addLong(resultL);
+			il = insert(il, handle, new LDC2_W(index));
+			stack.push(resultL);
+			break;
+		case 'f' :
+			float resultF = ldc2.floatValue() % ldc1.floatValue();
+			index = cpgen.addFloat(resultF);
+			il = insert(il, handle, new LDC(index));
+			stack.push(resultF);
+			break;
+		case 'd' :
+			double resultD = ldc2.doubleValue() % ldc1.doubleValue();
+			index = cpgen.addDouble(resultD);
+			il = insert(il, handle, new LDC2_W(index));
+			stack.push(resultD);
+			break;
 		}
 		
-		il = insert(il, handle, new_ldc);
-		System.out.println("inserted");
-		//il = removeHandle(il, handle);
 		return il;
 	}
 	
-	private InstructionList do_neg(InstructionHandle handle, InstructionList il, int type){
+	private InstructionList do_neg(InstructionHandle handle, InstructionList il){
 
 		int index;
-		CPInstruction new_ldc;
 		Number ldc1 = stack.pop();
+		char c = handle.getInstruction().getName().charAt(0); 
 		if(ldc1 instanceof NullNumber){
 			stack.push(ldc1);
 			return il;
 		}
 		
-		if (type == 1) {
+		switch (c) {
+		case 'i' :
 			int result = -ldc1.intValue();
 			index = cpgen.addInteger(result);
-			new_ldc = new LDC(index);
+			il = insert(il, handle, new LDC(index));
 			stack.push(result);
-		} else if (type == 2) {
-			long result = -ldc1.longValue();
-			index = cpgen.addLong(result);
-			new_ldc = new LDC2_W(index);
-			stack.push(result);
-		} else if (type == 3) {
-			int result = -ldc1.intValue();
-			index = cpgen.addInteger(result);
-			new_ldc = new LDC(index);
-			stack.push(result);
-		} else {
-			int result = -ldc1.intValue();
-			index = cpgen.addInteger(result);
-			new_ldc = new LDC2_W(index);
-			stack.push(result);
+		case 'l' :
+			long resultL = -ldc1.longValue();
+			index = cpgen.addLong(resultL);
+			il = insert(il, handle, new LDC2_W(index));
+			stack.push(resultL);
+		case 'f' :
+			float resultF = -ldc1.floatValue();
+			index = cpgen.addFloat(resultF);
+			il = insert(il, handle, new LDC(index));
+			stack.push(resultF);
+		case 'd' :
+			double resultD = -ldc1.doubleValue();
+			index = cpgen.addDouble(resultD);
+			il = insert(il, handle, new LDC2_W(index));
+			stack.push(resultD);
 		}
 		
-		il = insert(il, handle, new_ldc);
-		System.out.println("inserted");
-		//il = removeHandle(il, handle);
 		return il;
 	}
 	
@@ -349,54 +352,19 @@ public class ConstantFolder
 	private InstructionList handler(InstructionHandle handle, InstructionList il) 
 	{
 		Instruction inst = handle.getInstruction();
-		if (inst instanceof IADD) {
-			return do_add(handle, il, 1);
-		} else if (inst instanceof LADD) {
-			return do_add(handle, il, 2);
-		} else if (inst instanceof FADD) {
-			return do_add(handle, il, 3);
-		} else if (inst instanceof DADD) {
-			return do_add(handle, il, 4);
-		} else if (inst instanceof IMUL) {
-			return do_mul(handle, il, 1);
-		} else if (inst instanceof LMUL) {
-			return do_mul(handle, il, 2);
-		} else if (inst instanceof FMUL) {
-			return do_mul(handle, il, 3);
-		} else if (inst instanceof DMUL) {
-			return do_mul(handle, il, 4);
-		} else if (inst instanceof ISUB) {
-			return do_sub(handle, il, 1);
-		} else if (inst instanceof LSUB) {
-			return do_sub(handle, il, 2);
-		} else if (inst instanceof FSUB) {
-			return do_sub(handle, il, 3);
-		} else if (inst instanceof DSUB) {
-			return do_sub(handle, il, 4);
-		} else if (inst instanceof IDIV) {
-			return do_div(handle, il, 1);
-		} else if (inst instanceof LDIV) {
-			return do_div(handle, il, 2);
-		} else if (inst instanceof FDIV) {
-			return do_div(handle, il, 3);
-		} else if (inst instanceof DDIV) {
-			return do_div(handle, il, 4);
-		} else if (inst instanceof IREM) {
-			return do_rem(handle, il, 1);
-		} else if (inst instanceof LREM) {
-			return do_rem(handle, il, 2);
-		} else if (inst instanceof FREM) {
-			return do_rem(handle, il, 3);
-		} else if (inst instanceof DREM) {
-			return do_rem(handle, il, 4);
-		} else if (inst instanceof INEG) {
-			return do_neg(handle, il, 1);
-		} else if (inst instanceof LNEG) {
-			return do_neg(handle, il, 2);
-		} else if (inst instanceof FNEG) {
-			return do_neg(handle, il, 3);
-		} else if (inst instanceof DNEG) {
-			return do_neg(handle, il, 4);
+		
+		if (inst instanceof IADD || inst instanceof LADD || inst instanceof FADD || inst instanceof DADD) {
+			return do_add(handle, il);
+		} else if (inst instanceof IMUL || inst instanceof LMUL || inst instanceof FMUL || inst instanceof DMUL) {
+			return do_mul(handle, il);
+		} else if (inst instanceof ISUB || inst instanceof LSUB || inst instanceof FSUB || inst instanceof DSUB) {
+			return do_sub(handle, il);
+		} else if (inst instanceof IDIV || inst instanceof LDIV || inst instanceof FDIV || inst instanceof DDIV) {
+			return do_div(handle, il);
+		} else if (inst instanceof IREM || inst instanceof LREM || inst instanceof FREM || inst instanceof DREM) {
+			return do_rem(handle, il);
+		} else if (inst instanceof INEG || inst instanceof LNEG || inst instanceof FNEG || inst instanceof DNEG) {
+			return do_neg(handle, il);
 		} else if(inst instanceof ConversionInstruction){
 			return do_convert(handle, il);
 		}
@@ -438,7 +406,7 @@ public class ConstantFolder
 		return false;
 	}
 	
-	private InstructionList maintainStack(InstructionHandle handle, InstructionList il){
+	private void maintainStack(InstructionHandle handle, InstructionList il){
 		Instruction inst = handle.getInstruction();
 		if(inst instanceof ICONST){
 			stack.push(Character.getNumericValue(handle.getInstruction().toString().charAt(7)));
@@ -468,9 +436,8 @@ public class ConstantFolder
 			stack.push(obj);
 			//il = removeHandle(il, handle);
 		} else {
-			return il;
+			return;
 		}
-		return il;
 	}
 	
 	private InstructionList maintainLocals(InstructionHandle handle, InstructionList il){
@@ -518,7 +485,6 @@ public class ConstantFolder
 					!(next.getInstruction() instanceof LCMP)) {
 
 				il = removeHandle(il, previous);
-				// System.out.println("exterminated");
 			}
 
 			handle = handle.getNext();
